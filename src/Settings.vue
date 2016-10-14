@@ -5,13 +5,20 @@
     <a v-on:click.prevent="closeSettings" class="btn" href="#" title="back"><i class="fa fa-arrow-left fa-2x settings-nav" aria-hidden="true"></i></a>
     <p id="settings-header"><big>Settings</big></p>
     <label>Date format:</label>
-    <input type="text" v-bind:value="dateFormat" />
+    <input type="text" v-model="myDateFormat" />
+    <span>{{ dateFormatted.replace(" ", "&nbsp") }}</span>
   </div>
 </div>
 </template>
 
 <script>
 export default {
+  data () {
+    return {
+      myDateFormat: this.dateFormat,
+      myTimeFormat: this.timeFormat
+    }
+  },
   props: [
     "datetime",
     "dateFormat",
@@ -27,6 +34,11 @@ export default {
     closeSettings() {
       document.getElementById("settings").className = "nodisplay";
       return false;
+    }
+  },
+  watch: {
+    myDateFormat (newFormat) {
+      this.$emit("setDateFormat", newFormat);
     }
   }
 }

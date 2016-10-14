@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <settings v-bind:datetime="datetime" v-bind:date-format="dateFormat" v-bind:time-format="timeFormat" v-bind:date-formatted="dateFormatted" v-bind:time-formatted="timeFormatted"></settings>
+    <settings v-bind:datetime="datetime" v-bind:date-format="dateFormat" v-bind:time-format="timeFormat" v-bind:date-formatted="dateFormatted" v-bind:time-formatted="timeFormatted"
+      v-on:setDateFormat="handleDateFormat">
+    </settings>
     <p id="date"><big>{{ dateFormatted }}</big></p>
     <p id="time"><big>{{ timeFormatted }}</big></p>
   </div>
@@ -31,10 +33,15 @@ export default {
       this.timeFormatted = newDatetime.format(this.timeFormat);
     },
     dateFormat: function (newFormat) {
-      this.dateFormatted = this.datetime(newFormat);
+      this.dateFormatted = this.datetime.format(newFormat);
     },
     timeFormat: function (newFormat) {
-      this.timeFormatted = this.datetime(newFormat);
+      this.timeFormatted = this.datetime.format(newFormat);
+    }
+  },
+  methods: {
+    handleDateFormat(newFormat) {
+      this.dateFormat = newFormat;
     }
   },
   created() {
