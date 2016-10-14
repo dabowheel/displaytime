@@ -1,5 +1,8 @@
 CFLAGS = -Wall -O3 -g
-main: main.o
+all: build.js
+build.js:
+	webpack
+wmain: main.o
 	gcc -o main main.o -lfcgi -L/usr/local/lib -laqua
 main.o: main.c
 	gcc -c main.c $(CFLAGS)

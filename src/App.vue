@@ -1,7 +1,8 @@
 <template>
   <div id="app">
-    <p id="date">{{time.format("dddd MMMM Do YYYY")}}</p>
-    <p id="time">{{time.format("hh:mm")}}</p>
+    <a v-on:click.prevent="settings" href="#" class="btn"><i class="fa fa-cog" aria-hidden="true"></i></a>
+    <p id="date"><big>{{time.format("dddd MMMM Do YYYY")}}</big></p>
+    <p id="time"><big>{{time.format("hh:mm")}}</big></p>
   </div>
 </template>
 
@@ -17,20 +18,21 @@ export default {
     setInterval(function () {
       this.time = moment();
     }.bind(this), 1000);
+  },
+  methods: {
+    settings () {
+      console.log("settings");
+      return false;
+    }
   }
 }
 </script>
 
 <style>
 body {
-  background-color: black;
-  color: white;
   font-family: Helvetica, sans-serif;
 }
 p {
   text-align: center;
-}
-#date,#time {
-  font-size: 60pt;
 }
 </style>

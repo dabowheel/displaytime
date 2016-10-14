@@ -4,6 +4,7 @@
   "description": "Display time",
   "main": "app.js",
   "dependencies": {
+    "font-awesome": "^4.6.3",
     "moment": "^2.15.1",
     "vue": "^2.0.3"
   },
