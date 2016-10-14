@@ -48,8 +48,14 @@ export default {
 <style>
 body {
   font-family: Helvetica, sans-serif;
+  font-size: 4em;
   margin: 0;
   padding: 0;
+}
+@media (min-width: 1000px) {
+  body {
+    font-size: 1em;
+  }
 }
 #date,#time {
   text-align: center;

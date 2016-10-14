@@ -1,13 +1,13 @@
 <template>
 <div>
-  <a v-on:click.prevent="settings" href="#" class="btn" title="show settings"><i class="fa fa-cog fa-2x settings-nav" aria-hidden="true"></i></a>
+  <a v-on:click.prevent="settings" href="#" class="btn" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
   <div id="settings" class="nodisplay">
-    <a v-on:click.prevent="closeSettings" class="btn" href="#" title="back"><i class="fa fa-arrow-left fa-2x settings-nav" aria-hidden="true"></i></a>
+    <a v-on:click.prevent="closeSettings" class="btn" href="#" title="back"><i class="fa fa-arrow-left fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
     <p id="datetime-string"><big>{{ datetimeString.replace(" ", "&nbsp") }}</big></p>
     <p id="settings-header"><big>Date/Time Settings</big></p>
     <p id="datetime-format-field"><input type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></p>
     <p id="guide">Guide</p>
-    <table border="1">
+    <table id="guide-table" border="1">
       <thead>
         <tr>
           <th>Format</th><th>Example</th>
@@ -28,7 +28,7 @@
         </tr>
       </tbody>
     </table>
-    <p>For details on formats see <a href="http://momentjs.com/docs/#/displaying/">Moment.js</a> documentation.</p>
+    <p id="more-details">For details on formats see <a href="http://momentjs.com/docs/#/displaying/">Moment.js</a> documentation.</p>
   </div>
 </div>
 </template>
@@ -64,7 +64,7 @@ export default {
 </script>
 
 <style>
-#settings-header, #datetime-string, #datetime-format-field, #guide {
+#settings-header, #datetime-string, #datetime-format-field, #guide, #more-details {
   text-align: center;
 }
 .fill {
@@ -84,6 +84,8 @@ export default {
 table {
   border-collapse: collapse;
   border-style: none;
+  margin-left: auto;
+  margin-right: auto;
 }
 th {
   background-color: lightblue;
@@ -103,5 +105,14 @@ td {
   border-left-style: none;
   border-right-style: none;
   border-bottom-style: none;
+}
+.click-icon {
+  font-size: 2em;
+}
+
+@media (min-width: 1000px) {
+  .click-icon {
+    font-size: 2em;
+  }
 }
 </style>
