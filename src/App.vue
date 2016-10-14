@@ -1,8 +1,8 @@
 <template>
   <div id="app">
-    <settings></settings>
-    <p id="date"><big>{{time.format("dddd MMMM Do YYYY")}}</big></p>
-    <p id="time"><big>{{time.format("hh:mm")}}</big></p>
+    <settings v-bind:datetime="datetime" v-bind:date-format="dateFormat" v-bind:time-format="timeFormat" v-bind:date-formatted="dateFormatted" v-bind:time-formatted="timeFormatted"></settings>
+    <p id="date"><big>{{ dateFormatted }}</big></p>
+    <p id="time"><big>{{ timeFormatted }}</big></p>
   </div>
 </template>
 
@@ -12,13 +12,34 @@ import Settings from './Settings.vue';
 
 export default {
   data () {
+    var datetime = moment();
+    var dateFormat = localStorage.dateFormat ? localStorage.dateFormat: "dddd MMMM Do YYYY";
+    var timeFormat = localStorage.timeFormat ? localStorage.timeFormat: "hh:mm";
+    var dateFormatted = datetime.format(dateFormat);
+    var timeFormatted = datetime.format(timeFormat);
     return {
-      time: moment()
+      datetime: datetime,
+      dateFormat: dateFormat,
+      timeFormat: timeFormat,
+      dateFormatted: dateFormatted,
+      timeFormatted: timeFormatted
+    }
+  },
+  watch: {
+    datetime: function (newDatetime) {
+      this.dateFormatted = newDatetime.format(this.dateFormat);
+      this.timeFormatted = newDatetime.format(this.timeFormat);
+    },
+    dateFormat: function (newFormat) {
+      this.dateFormatted = this.datetime(newFormat);
+    },
+    timeFormat: function (newFormat) {
+      this.timeFormatted = this.datetime(newFormat);
     }
   },
   created() {
     setInterval(function () {
-      this.time = moment();
+      this.datetime = moment();
     }.bind(this), 1000);
   },
   components: {

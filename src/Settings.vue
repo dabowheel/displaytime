@@ -4,12 +4,21 @@
   <div id="settings" class="nodisplay">
     <a v-on:click.prevent="closeSettings" class="btn" href="#" title="back"><i class="fa fa-arrow-left fa-2x settings-nav" aria-hidden="true"></i></a>
     <p id="settings-header"><big>Settings</big></p>
+    <label>Date format:</label>
+    <input type="text" v-bind:value="dateFormat" />
   </div>
 </div>
 </template>
 
 <script>
 export default {
+  props: [
+    "datetime",
+    "dateFormat",
+    "timeFormat",
+    "dateFormatted",
+    "timeFormatted"
+  ],
   methods: {
     settings () {
       document.getElementById("settings").className = "fill";
