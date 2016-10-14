@@ -1,8 +1,8 @@
 <template>
 <div>
-  <a v-on:click.prevent="settings" href="#" class="btn"><i class="fa fa-cog" aria-hidden="true"></i></a>
+  <a v-on:click.prevent="settings" href="#" class="btn" title="show settings"><i class="fa fa-cog fa-2x settings-nav" aria-hidden="true"></i></a>
   <div id="settings" class="nodisplay">
-    <a v-on:click.prevent="closeSettings" class="btn" href="#"><i class="fa fa-arrow-left" aria-hidden="true"></i></a>
+    <a v-on:click.prevent="closeSettings" class="btn" href="#" title="back"><i class="fa fa-arrow-left fa-2x settings-nav" aria-hidden="true"></i></a>
     <p id="settings-header"><big>Settings</big></p>
   </div>
 </div>
@@ -13,6 +13,10 @@ export default {
   methods: {
     settings () {
       document.getElementById("settings").className = "fill";
+      return false;
+    },
+    closeSettings() {
+      document.getElementById("settings").className = "nodisplay";
       return false;
     }
   }
@@ -33,5 +37,8 @@ export default {
 }
 .nodisplay {
   display: none;
+}
+.settings-nav {
+  margin: 5px;
 }
 </style>
