@@ -6,4 +6,5 @@ main.o: main.c
 clean:
 	rm -f main *.o
 deploy:
+	rm -rf /var/www/html/*
 	cp -R public/* /var/www/html

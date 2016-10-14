@@ -1,0 +1,23 @@
+{
+  "name": "displaytime",
+  "version": "1.0.0",
+  "description": "Display time",
+  "main": "app.js",
+  "dependencies": {
+    "moment": "^2.15.1",
+    "vue": "^2.0.3"
+  },
+  "devDependencies": {
+    "babel-core": "^6.17.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-es2015": "^6.16.0",
+    "css-loader": "^0.25.0",
+    "vue-loader": "^9.7.0",
+    "webpack": "^1.13.2"
+  },
+  "scripts": {
+    "build": "webpack"
+  },
+  "author": "Miguel Provencio",
+  "license": "MIT"
+}
