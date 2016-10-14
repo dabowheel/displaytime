@@ -34,9 +34,11 @@ export default {
     },
     dateFormat: function (newFormat) {
       this.dateFormatted = this.datetime.format(newFormat);
+      localStorage.dateFormat = newFormat;
     },
     timeFormat: function (newFormat) {
       this.timeFormatted = this.datetime.format(newFormat);
+      localStorage.timeFormat = newFormat;
     }
   },
   methods: {

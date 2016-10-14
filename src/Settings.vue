@@ -3,10 +3,9 @@
   <a v-on:click.prevent="settings" href="#" class="btn" title="show settings"><i class="fa fa-cog fa-2x settings-nav" aria-hidden="true"></i></a>
   <div id="settings" class="nodisplay">
     <a v-on:click.prevent="closeSettings" class="btn" href="#" title="back"><i class="fa fa-arrow-left fa-2x settings-nav" aria-hidden="true"></i></a>
-    <p id="settings-header"><big>Settings</big></p>
-    <label>Date format:</label>
-    <input type="text" v-model="myDateFormat" />
-    <span>{{ dateFormatted.replace(" ", "&nbsp") }}</span>
+    <p id="date-formatted"><big>{{ dateFormatted.replace(" ", "&nbsp") }}</big></p>
+    <p id="settings-header"><big>Date Settings</big></p>
+    <p id="date-format-field"><input type="text" v-model="myDateFormat" placeholder="date format"/></p>
   </div>
 </div>
 </template>
@@ -45,7 +44,7 @@ export default {
 </script>
 
 <style>
-#settings-header {
+#settings-header, #date-formatted, #date-format-field {
   text-align: center;
 }
 .fill {
