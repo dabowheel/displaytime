@@ -1,23 +1,22 @@
 <template>
   <div id="app">
-    <p id="greeting">Hello</p>
-    <p id="time">{{ time }}</p>
+    <p id="date">{{time.format("dddd MMMM Do YYYY")}}</p>
+    <p id="time">{{time.format("hh:mm")}}</p>
   </div>
 </template>
 
 <script>
 import moment from 'moment';
-
 export default {
   data () {
     return {
-      time: moment().format("hh:mm:ss")
+      time: moment()
     }
   },
   created() {
     setInterval(function () {
-      this.time = moment().format("hh:mm:ss");
-    }.bind(this), 500);
+      this.time = moment();
+    }.bind(this), 1000);
   }
 }
 </script>
@@ -31,10 +30,7 @@ body {
 p {
   text-align: center;
 }
-#greeting {
-  font-size: 20pt;
-}
-#time {
+#date,#time {
   font-size: 60pt;
 }
 </style>
