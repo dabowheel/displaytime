@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <a v-on:click.prevent="settings" href="#" class="btn"><i class="fa fa-cog" aria-hidden="true"></i></a>
+    <settings></settings>
     <p id="date"><big>{{time.format("dddd MMMM Do YYYY")}}</big></p>
     <p id="time"><big>{{time.format("hh:mm")}}</big></p>
   </div>
@@ -8,6 +8,8 @@
 
 <script>
 import moment from 'moment';
+import Settings from './Settings.vue';
+
 export default {
   data () {
     return {
@@ -19,11 +21,8 @@ export default {
       this.time = moment();
     }.bind(this), 1000);
   },
-  methods: {
-    settings () {
-      console.log("settings");
-      return false;
-    }
+  components: {
+    Settings
   }
 }
 </script>
