@@ -30,8 +30,10 @@ export default {
 <style>
 body {
   font-family: Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
 }
-p {
+#date,#time {
   text-align: center;
 }
 </style>
