@@ -1,35 +1,30 @@
 <template>
-<div>
-  <a v-on:click.prevent="settings" href="#" class="btn" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
-  <div id="settings" class="nodisplay">
-    <a v-on:click.prevent="closeSettings" class="btn" href="#" title="back"><i class="fa fa-arrow-left fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
-    <p id="datetime-string"><big>{{ datetimeString.replace(" ", "&nbsp") }}</big></p>
-    <p id="settings-header"><big>Date/Time Settings</big></p>
-    <p id="datetime-format-field"><input type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></p>
-    <p id="guide">Guide</p>
-    <table id="guide-table" border="1">
-      <thead>
-        <tr>
-          <th>Format</th><th>Example</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>LLL</td><td>September 4 1986 8:30 PM</td>
-        </tr>
-        <tr>
-          <td>lll</td><td>Sep 4 1986 8:30 PM</td>
-        </tr>
-        <tr>
-          <td>LLLL</td><td>Thursday, September 4 1986 8:30 PM</td>
-        </tr>
-        <tr>
-          <td>llll</td><td>Thu, Sep 4 1986 8:30 PM</td>
-        </tr>
-      </tbody>
-    </table>
-    <p id="more-details">For details on formats see <a href="http://momentjs.com/docs/#/displaying/">Moment.js</a> documentation.</p>
-  </div>
+<div id="settings" class="nodisplay">
+  <p id="settings-header"><big>Date/Time Settings</big></p>
+  <p id="datetime-format-field"><input type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></p>
+  <p id="guide">Guide</p>
+  <table id="guide-table" border="1">
+    <thead>
+      <tr>
+        <th>Format</th><th>Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>LLL</td><td>September 4 1986 8:30 PM</td>
+      </tr>
+      <tr>
+        <td>lll</td><td>Sep 4 1986 8:30 PM</td>
+      </tr>
+      <tr>
+        <td>LLLL</td><td>Thursday, September 4 1986 8:30 PM</td>
+      </tr>
+      <tr>
+        <td>llll</td><td>Thu, Sep 4 1986 8:30 PM</td>
+      </tr>
+    </tbody>
+  </table>
+  <p id="more-details">For details on formats see <a href="http://momentjs.com/docs/#/displaying/">Moment.js</a> documentation.</p>
 </div>
 </template>
 
@@ -41,21 +36,16 @@ export default {
     }
   },
   props: [
-    "datetime",
+    "open",
     "datetimeFormat",
-    "datetimeString"
   ],
   methods: {
-    settings () {
-      document.getElementById("settings").className = "fill";
-      return false;
-    },
-    closeSettings() {
-      document.getElementById("settings").className = "nodisplay";
-      return false;
-    }
   },
   watch: {
+    open () {
+      console.log("open " + this.open)
+      document.getElementById("settings").style.display = (this.open) ? "inline": "none";
+    },
     myDatetimeFormat (newFormat) {
       this.$emit("setDatetimeFormat", newFormat);
     }

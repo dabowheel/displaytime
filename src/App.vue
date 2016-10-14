@@ -1,8 +1,10 @@
 <template>
   <div id="app">
-    <settings v-bind:datetime="datetime" v-bind:datetime-format="datetimeFormat" v-bind:datetime-string="datetimeString" v-on:setDatetimeFormat="handleDatetimeFormat">
-    </settings>
+    <a id="open-settings" v-on:click.prevent="clickOpenSettings" href="#" class="btn" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
+    <a id="close-settings" v-on:click.prevent="clickCloseSettings" href="#" class="btn" title="back"><i class="fa fa-arrow-left fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
     <p id="date"><big>{{ datetimeString }}</big></p>
+   <settings v-bind:open="openSettings" v-bind:datetime-format="datetimeFormat" v-on:setDatetimeFormat="handleDatetimeFormat">
+    </settings>
   </div>
 </template>
 
@@ -18,6 +20,7 @@ export default {
       datetime: datetime,
       datetimeFormat: datetimeFormat,
       datetimeString: datetime.format(datetimeFormat),
+      openSettings: false
     }
   },
   watch: {
@@ -30,6 +33,18 @@ export default {
     }
   },
   methods: {
+    clickOpenSettings () {
+      document.getElementById("open-settings").style.display = "none";
+      document.getElementById("close-settings").style.display = "inline";
+      this.openSettings = true;
+      return false;
+    },
+    clickCloseSettings() {
+      document.getElementById("close-settings").style.display = "none";
+      document.getElementById("open-settings").style.display = "inline";
+      this.openSettings = false;
+      return false;
+    },
     handleDatetimeFormat(newFormat) {
       this.datetimeFormat = newFormat;
     }
@@ -59,5 +74,8 @@ body {
 }
 #date,#time {
   text-align: center;
+}
+#close-settings {
+  display: none;
 }
 </style>
