@@ -11,8 +11,14 @@ import moment from 'moment';
 export default {
   data () {
     return {
-      time: moment().format("HH:MM:SS")
+      time: moment().format("hh:mm:ss")
     }
+  },
+  created() {
+    setInterval(function () {
+      this.time = moment().format("hh:mm:ss");
+      console.log("tick");
+    }.bind(this), 500);
   }
 }
 </script>
