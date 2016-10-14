@@ -3,9 +3,9 @@
   <a v-on:click.prevent="settings" href="#" class="btn" title="show settings"><i class="fa fa-cog fa-2x settings-nav" aria-hidden="true"></i></a>
   <div id="settings" class="nodisplay">
     <a v-on:click.prevent="closeSettings" class="btn" href="#" title="back"><i class="fa fa-arrow-left fa-2x settings-nav" aria-hidden="true"></i></a>
-    <p id="date-formatted"><big>{{ dateFormatted.replace(" ", "&nbsp") }}</big></p>
-    <p id="settings-header"><big>Date Settings</big></p>
-    <p id="date-format-field"><input type="text" v-model="myDateFormat" placeholder="date format"/></p>
+    <p id="datetime-string"><big>{{ datetimeString.replace(" ", "&nbsp") }}</big></p>
+    <p id="settings-header"><big>Date/Time Settings</big></p>
+    <p id="datetime-format-field"><input type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></p>
     <p id="guide">Guide</p>
     <table border="1">
       <thead>
@@ -15,16 +15,20 @@
       </thead>
       <tbody>
         <tr>
-          <td>YY</td><td>70 71 ... 29 30</td>
+          <td>LLL</td><td>September 4 1986 8:30 PM</td>
         </tr>
         <tr>
-          <td>YYY</td><td>1970 1971 ... 2029 2030</td>
+          <td>lll</td><td>Sep 4 1986 8:30 PM</td>
         </tr>
         <tr>
-          <td>Y</td><td>1970 1971 ... 9999 +10000 +10001 <strong>Note</strong>: This complies with the ISO 8601 standard for dates past the year 9999</td>
+          <td>LLLL</td><td>Thursday, September 4 1986 8:30 PM</td>
+        </tr>
+        <tr>
+          <td>llll</td><td>Thu, Sep 4 1986 8:30 PM</td>
         </tr>
       </tbody>
-    </table> 
+    </table>
+    <p>For details on formats see <a href="http://momentjs.com/docs/#/displaying/">Moment.js</a> documentation.</p>
   </div>
 </div>
 </template>
@@ -33,16 +37,13 @@
 export default {
   data () {
     return {
-      myDateFormat: this.dateFormat,
-      myTimeFormat: this.timeFormat
+      myDatetimeFormat: this.datetimeFormat,
     }
   },
   props: [
     "datetime",
-    "dateFormat",
-    "timeFormat",
-    "dateFormatted",
-    "timeFormatted"
+    "datetimeFormat",
+    "datetimeString"
   ],
   methods: {
     settings () {
@@ -55,15 +56,15 @@ export default {
     }
   },
   watch: {
-    myDateFormat (newFormat) {
-      this.$emit("setDateFormat", newFormat);
+    myDatetimeFormat (newFormat) {
+      this.$emit("setDatetimeFormat", newFormat);
     }
   }
 }
 </script>
 
 <style>
-#settings-header, #date-formatted, #date-format-field, #guide {
+#settings-header, #datetime-string, #datetime-format-field, #guide {
   text-align: center;
 }
 .fill {
@@ -79,5 +80,28 @@ export default {
 }
 .settings-nav {
   margin: 5px;
+}
+table {
+  border-collapse: collapse;
+  border-style: none;
+}
+th {
+  background-color: lightblue;
+  color: white;
+}
+td,th {
+  padding: 0;
+  margin: 0;
+  border-color: #aaaaaa;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+th {
+  border-color: green;
+}
+td {
+  border-left-style: none;
+  border-right-style: none;
+  border-bottom-style: none;
 }
 </style>

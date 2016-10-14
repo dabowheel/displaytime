@@ -1,10 +1,8 @@
 <template>
   <div id="app">
-    <settings v-bind:datetime="datetime" v-bind:date-format="dateFormat" v-bind:time-format="timeFormat" v-bind:date-formatted="dateFormatted" v-bind:time-formatted="timeFormatted"
-      v-on:setDateFormat="handleDateFormat">
+    <settings v-bind:datetime="datetime" v-bind:datetime-format="datetimeFormat" v-bind:datetime-string="datetimeString" v-on:setDatetimeFormat="handleDatetimeFormat">
     </settings>
-    <p id="date"><big>{{ dateFormatted }}</big></p>
-    <p id="time"><big>{{ timeFormatted }}</big></p>
+    <p id="date"><big>{{ datetimeString }}</big></p>
   </div>
 </template>
 
@@ -15,35 +13,25 @@ import Settings from './Settings.vue';
 export default {
   data () {
     var datetime = moment();
-    var dateFormat = localStorage.dateFormat ? localStorage.dateFormat: "dddd MMMM Do YYYY";
-    var timeFormat = localStorage.timeFormat ? localStorage.timeFormat: "hh:mm";
-    var dateFormatted = datetime.format(dateFormat);
-    var timeFormatted = datetime.format(timeFormat);
+    var datetimeFormat = localStorage.datetimeFormat ? localStorage.datetimeFormat: "llll";
     return {
       datetime: datetime,
-      dateFormat: dateFormat,
-      timeFormat: timeFormat,
-      dateFormatted: dateFormatted,
-      timeFormatted: timeFormatted
+      datetimeFormat: datetimeFormat,
+      datetimeString: datetime.format(datetimeFormat),
     }
   },
   watch: {
     datetime: function (newDatetime) {
-      this.dateFormatted = newDatetime.format(this.dateFormat);
-      this.timeFormatted = newDatetime.format(this.timeFormat);
+      this.datetimeString = newDatetime.format(this.datetimeFormat);
     },
-    dateFormat: function (newFormat) {
-      this.dateFormatted = this.datetime.format(newFormat);
-      localStorage.dateFormat = newFormat;
-    },
-    timeFormat: function (newFormat) {
-      this.timeFormatted = this.datetime.format(newFormat);
-      localStorage.timeFormat = newFormat;
+    datetimeFormat: function (newFormat) {
+      this.datetimeString = this.datetime.format(newFormat);
+      localStorage.datetimeFormat = newFormat;
     }
   },
   methods: {
-    handleDateFormat(newFormat) {
-      this.dateFormat = newFormat;
+    handleDatetimeFormat(newFormat) {
+      this.datetimeFormat = newFormat;
     }
   },
   created() {
