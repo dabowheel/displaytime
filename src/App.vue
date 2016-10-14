@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <p>Hello</p>
-    <p>The time is {{ time }}</p>
+    <p id="greeting">Hello</p>
+    <p id="time">{{ time }}</p>
   </div>
 </template>
 
@@ -17,7 +17,6 @@ export default {
   created() {
     setInterval(function () {
       this.time = moment().format("hh:mm:ss");
-      console.log("tick");
     }.bind(this), 500);
   }
 }
@@ -28,5 +27,14 @@ body {
   background-color: black;
   color: white;
   font-family: Helvetica, sans-serif;
+}
+p {
+  text-align: center;
+}
+#greeting {
+  font-size: 20pt;
+}
+#time {
+  font-size: 60pt;
 }
 </style>
