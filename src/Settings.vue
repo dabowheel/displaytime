@@ -1,7 +1,9 @@
 <template>
-<div id="settings" class="nodisplay">
+<div id="settings">
   <div id="datetime-format-label">Date/Time format:</div>
   <div id="datetime-format-field"><input id="datetime-format-input" type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></div>
+  <div>Date/Time</div>
+  <div>{{datetimeString}}</div>
   <div id="guide">Guide</div>
   <table id="guide-table" border="1">
     <thead>
@@ -36,8 +38,8 @@ export default {
     }
   },
   props: [
-    "open",
     "datetimeFormat",
+    "datetimeString"
   ],
   methods: {
   },
@@ -56,9 +58,6 @@ export default {
 #guide {
   margin-top: 15px;
   margin-bottom: 5px;
-}
-.guide-header {
-  font-size: 0.6em;
 }
 #datetime-format-label, #datetime-string, #datetime-format-field, #guide, #more-details {
   text-align: center;

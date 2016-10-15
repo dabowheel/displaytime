@@ -1,12 +1,18 @@
 <template>
   <div id="app">
-    <a id="open-settings" v-on:click.prevent="clickOpenSettings" href="#" class="btn toolbar-link" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
-    <a id="close-settings" v-on:click.prevent="clickCloseSettings" href="#" class="btn toolbar-link" title="back"><i class="fa fa-times fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
-    <a v-show="!openSettings" id="signup" @click.prevent="clickSignup" href="#" class="btn toolbar-link click-link" title="sign up">Sign up</a>
-    <a v-show="!openSettings" id="login" @click.prevent="clickLogin" href="#" class="btn toolbar-link click-link" title="login">Login</a>
-    <span v-show="openSettings" id="settings-header">Settings</span>
-    <p id="date"><big>{{ datetimeString }}</big></p>
-   <settings v-bind:open="openSettings" v-bind:datetime-format="datetimeFormat" v-on:setDatetimeFormat="handleDatetimeFormat">
+    <div id="toolbar" class="toolbar">
+      <div id="toolbar-links" class="toolbar-links">
+        <a v-show="!openSettings" id="signup" @click.prevent="clickSignup" href="#" class="btn toolbar-link click-link" title="sign up">Sign up</a>
+        <a v-show="!openSettings" id="login" @click.prevent="clickLogin" href="#" class="btn toolbar-link click-link" title="login">Login</a>
+        <a v-show="!openSettings" v-on:click.prevent="clickOpenSettings" href="#" class="btn toolbar-link" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
+        <a v-show="openSettings" v-on:click.prevent="clickCloseSettings" href="#" class="btn toolbar-link" title="back"><i class="fa fa-times fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
+      </div>
+    </div>
+    <div class="headers">
+      <span v-show="openSettings" id="settings-header" class="toolbar-link">Settings</span>
+    </div>
+    <p v-show="!openSettings" id="datetime"><big>{{ datetimeString }}</big></p>
+   <settings v-show="openSettings" v-bind:datetime-format="datetimeFormat" v-bind:datetimeString="datetimeString" v-on:setDatetimeFormat="handleDatetimeFormat">
     </settings>
   </div>
 </template>
@@ -37,16 +43,10 @@ export default {
   },
   methods: {
     clickOpenSettings () {
-      document.getElementById("open-settings").style.display = "none";
-      document.getElementById("close-settings").style.display = "inline";
       this.openSettings = true;
-      return false;
     },
     clickCloseSettings() {
-      document.getElementById("close-settings").style.display = "none";
-      document.getElementById("open-settings").style.display = "inline";
       this.openSettings = false;
-      return false;
     },
     handleDatetimeFormat(newFormat) {
       this.datetimeFormat = newFormat;
@@ -70,22 +70,24 @@ export default {
 </script>
 
 <style>
+/*
+  Default to mobile
+*/
+
 body {
   font-family: Helvetica, sans-serif;
-  font-size: 2em;
   margin: 0;
   padding: 0;
 }
-@media (min-width: 1000px) {
-  body {
-    font-size: 1em;
-  }
+.toolbar-links {
+  text-align: right;
 }
-#date,#time,#settings-header {
+.headers {
   text-align: center;
 }
-#close-settings {
-  display: none;
+#datetime {
+  text-align: center;
+  top: 50%;
 }
 .toolbar-link:link, .toolbar-link:visited {
   text-decoration: none;
@@ -100,19 +102,27 @@ body {
     color: #444444;
 }
 
+.toolbar {
+  margin-left: 1em;
+  margin-right: 1em;
+}
 .click-link {
   font-height: 2em;
   margin-left: .5em;
+  margin-right: .5em;
 }
 .click-icon {
   font-size: 2em;
 }
 #settings-header {
-  margin-left: .5em;
-  font-height: 2em;
-  font-size: 1.5em;
+  font-size: 2em;
 }
+
+/*
+  A large screen
+*/
 @media (min-width: 1000px) {
+  /* Font Size */
   .click-icon {
     font-size: 2em;
   }
