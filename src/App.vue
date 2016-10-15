@@ -63,7 +63,7 @@ export default {
 <style>
 body {
   font-family: Helvetica, sans-serif;
-  font-size: 4em;
+  font-size: 2em;
   margin: 0;
   padding: 0;
 }

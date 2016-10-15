@@ -1,7 +1,7 @@
 <template>
 <div id="settings" class="nodisplay">
   <p id="settings-header"><big>Date/Time Settings</big></p>
-  <p id="datetime-format-field"><input type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></p>
+  <p id="datetime-format-field"><input id="datetime-format-input" type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></p>
   <p id="guide">Guide</p>
   <table id="guide-table" border="1">
     <thead>
@@ -57,13 +57,9 @@ export default {
 #settings-header, #datetime-string, #datetime-format-field, #guide, #more-details {
   text-align: center;
 }
-.fill {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
+#datetime-format-input {
   width: 100%;
-  background: white;
+  box-sizing: border-box;
 }
 .nodisplay {
   display: none;
@@ -103,6 +99,9 @@ td {
 @media (min-width: 1000px) {
   .click-icon {
     font-size: 2em;
+  }
+  #date-time-field {
+    width: 200px;
   }
 }
 </style>
