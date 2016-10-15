@@ -50,6 +50,12 @@ export default {
     },
     handleDatetimeFormat(newFormat) {
       this.datetimeFormat = newFormat;
+    },
+    clickSignup () {
+
+    },
+    clickLogin () {
+
     }
   },
   created() {

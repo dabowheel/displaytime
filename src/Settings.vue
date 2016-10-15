@@ -43,7 +43,6 @@ export default {
   },
   watch: {
     open () {
-      console.log("open " + this.open)
       document.getElementById("settings").style.display = (this.open) ? "inline": "none";
     },
     myDatetimeFormat (newFormat) {
