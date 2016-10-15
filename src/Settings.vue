@@ -100,5 +100,9 @@ td {
   border-bottom-style: none;
 }
 
-
+@media (min-width: 1000px) {
+  #datetime-format-input {
+    width: 200px;
+  }
+}
 </style>
