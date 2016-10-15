@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <a id="open-settings" v-on:click.prevent="clickOpenSettings" href="#" class="btn toolbar-link" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
-    <a id="close-settings" v-on:click.prevent="clickCloseSettings" href="#" class="btn toolbar-link" title="back"><i class="fa fa-arrow-left fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
+    <a id="close-settings" v-on:click.prevent="clickCloseSettings" href="#" class="btn toolbar-link" title="back"><i class="fa fa-times fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
     <a v-show="!openSettings" id="signup" @click.prevent="clickSignup" href="#" class="btn toolbar-link click-link" title="sign up">Sign up</a>
     <a v-show="!openSettings" id="login" @click.prevent="clickLogin" href="#" class="btn toolbar-link click-link" title="login">Login</a>
     <span v-show="openSettings" id="settings-header">Settings</span>
