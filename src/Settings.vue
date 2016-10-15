@@ -2,8 +2,7 @@
 <div id="settings">
   <div id="datetime-format-label">Date/Time format:</div>
   <div id="datetime-format-field"><input id="datetime-format-input" type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></div>
-  <div>Date/Time</div>
-  <div>{{datetimeString}}</div>
+  <div class="displayfield">{{datetimeString}}</div>
   <div id="guide">Guide</div>
   <table id="guide-table" border="1">
     <thead>
@@ -59,7 +58,7 @@ export default {
   margin-top: 15px;
   margin-bottom: 5px;
 }
-#datetime-format-label, #datetime-string, #datetime-format-field, #guide, #more-details {
+#datetime-format-label, #datetime-string, #datetime-format-field, #guide, #more-details, .label, .displayfield {
   text-align: center;
 }
 #datetime-format-input {
@@ -96,6 +95,9 @@ td {
   border-left-style: none;
   border-right-style: none;
   border-bottom-style: none;
+}
+.displayfield {
+  font-size: 2em;
 }
 
 @media (min-width: 1000px) {

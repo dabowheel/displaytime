@@ -11,7 +11,7 @@
     <div class="headers">
       <span v-show="openSettings" id="settings-header" class="toolbar-link">Settings</span>
     </div>
-    <p v-show="!openSettings" id="datetime"><big>{{ datetimeString }}</big></p>
+    <p v-show="!openSettings" id="datetime">{{ datetimeString }}</p>
    <settings v-show="openSettings" v-bind:datetime-format="datetimeFormat" v-bind:datetimeString="datetimeString" v-on:setDatetimeFormat="handleDatetimeFormat">
     </settings>
   </div>
@@ -87,7 +87,7 @@ body {
 }
 #datetime {
   text-align: center;
-  top: 50%;
+  font-size: 2em;
 }
 .toolbar-link:link, .toolbar-link:visited {
   text-decoration: none;
@@ -103,12 +103,10 @@ body {
 }
 
 .toolbar {
-  margin-left: 1em;
   margin-right: 1em;
 }
 .click-link {
   font-height: 2em;
-  margin-left: .5em;
   margin-right: .5em;
 }
 .click-icon {
