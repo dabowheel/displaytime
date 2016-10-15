@@ -1,12 +1,12 @@
 <template>
 <div id="settings" class="nodisplay">
-  <p id="settings-header"><big>Date/Time Settings</big></p>
-  <p id="datetime-format-field"><input id="datetime-format-input" type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></p>
-  <p id="guide">Guide</p>
+  <div id="datetime-format-label">Date/Time format:</div>
+  <div id="datetime-format-field"><input id="datetime-format-input" type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></div>
+  <div id="guide">Guide</div>
   <table id="guide-table" border="1">
     <thead>
       <tr>
-        <th>Format</th><th>Example</th>
+        <th class="guide-header">Format</th><th class="guide-header">Example</th>
       </tr>
     </thead>
     <tbody>
@@ -24,7 +24,7 @@
       </tr>
     </tbody>
   </table>
-  <p id="more-details">For details on formats see <a href="http://momentjs.com/docs/#/displaying/">Moment.js</a> documentation.</p>
+  <p id="more-details">For details on formats see the <a href="http://momentjs.com/docs/#/displaying/">Moment.js</a> documentation.</p>
 </div>
 </template>
 
@@ -54,7 +54,14 @@ export default {
 </script>
 
 <style>
-#settings-header, #datetime-string, #datetime-format-field, #guide, #more-details {
+#guide {
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+.guide-header {
+  font-size: 0.6em;
+}
+#datetime-format-label, #datetime-string, #datetime-format-field, #guide, #more-details {
   text-align: center;
 }
 #datetime-format-input {
@@ -92,16 +99,6 @@ td {
   border-right-style: none;
   border-bottom-style: none;
 }
-.click-icon {
-  font-size: 2em;
-}
 
-@media (min-width: 1000px) {
-  .click-icon {
-    font-size: 2em;
-  }
-  #date-time-field {
-    width: 200px;
-  }
-}
+
 </style>

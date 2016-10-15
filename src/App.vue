@@ -1,7 +1,10 @@
 <template>
   <div id="app">
-    <a id="open-settings" v-on:click.prevent="clickOpenSettings" href="#" class="btn" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
-    <a id="close-settings" v-on:click.prevent="clickCloseSettings" href="#" class="btn" title="back"><i class="fa fa-arrow-left fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
+    <a id="open-settings" v-on:click.prevent="clickOpenSettings" href="#" class="btn toolbar-link" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
+    <a id="close-settings" v-on:click.prevent="clickCloseSettings" href="#" class="btn toolbar-link" title="back"><i class="fa fa-arrow-left fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
+    <a v-show="!openSettings" id="signup" @click.prevent="clickSignup" href="#" class="btn toolbar-link click-link" title="sign up">Sign up</a>
+    <a v-show="!openSettings" id="login" @click.prevent="clickLogin" href="#" class="btn toolbar-link click-link" title="login">Login</a>
+    <span v-show="openSettings" id="settings-header">Settings</span>
     <p id="date"><big>{{ datetimeString }}</big></p>
    <settings v-bind:open="openSettings" v-bind:datetime-format="datetimeFormat" v-on:setDatetimeFormat="handleDatetimeFormat">
     </settings>
@@ -72,10 +75,43 @@ body {
     font-size: 1em;
   }
 }
-#date,#time {
+#date,#time,#settings-header {
   text-align: center;
 }
 #close-settings {
   display: none;
+}
+.toolbar-link:link, .toolbar-link:visited {
+  text-decoration: none;
+}
+.toolbar-link:hover, .toolbar-link:active {
+  text-decoration: underline;
+}
+.toolbar-link:hover, .toolbar-link:active {
+  color: black;
+}
+.toolbar-link {
+    color: #444444;
+}
+
+.click-link {
+  font-height: 2em;
+  margin-left: .5em;
+}
+.click-icon {
+  font-size: 2em;
+}
+#settings-header {
+  margin-left: .5em;
+  font-height: 2em;
+  font-size: 1.5em;
+}
+@media (min-width: 1000px) {
+  .click-icon {
+    font-size: 2em;
+  }
+  #date-time-field {
+    width: 200px;
+  }
 }
 </style>
