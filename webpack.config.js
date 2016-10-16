@@ -14,11 +14,6 @@ module.exports = {
         test: /\.js$/,
         loader: 'babel-loader',
         exclude: /node_modules/
-      },
-      {
-        test: /abc/,
-        loader: 'css-loader',
-        exclude: /node_modules/
       }
     ]
   }

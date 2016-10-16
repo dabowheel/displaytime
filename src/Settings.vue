@@ -1,7 +1,7 @@
 <template>
 <div id="settings">
   <div id="datetime-format-label">Date/Time format:</div>
-  <div id="datetime-format-field"><input id="datetime-format-input" type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></div>
+  <div id="datetime-format-field"><input id="datetime-format-input" class="format-string" type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></div>
   <div class="displayfield">{{datetimeString}}</div>
   <div id="guide">Guide</div>
   <table id="guide-table" border="1">
@@ -12,16 +12,16 @@
     </thead>
     <tbody>
       <tr>
-        <td>LLL</td><td>September 4 1986 8:30 PM</td>
+        <td class="format-string">LLL</td><td>September 4 1986 8:30 PM</td>
       </tr>
       <tr>
-        <td>lll</td><td>Sep 4 1986 8:30 PM</td>
+        <td class="format-string">lll</td><td>Sep 4 1986 8:30 PM</td>
       </tr>
       <tr>
-        <td>LLLL</td><td>Thursday, September 4 1986 8:30 PM</td>
+        <td class="format-string">LLLL</td><td>Thursday, September 4 1986 8:30 PM</td>
       </tr>
       <tr>
-        <td>llll</td><td>Thu, Sep 4 1986 8:30 PM</td>
+        <td class="format-string">llll</td><td>Thu, Sep 4 1986 8:30 PM</td>
       </tr>
     </tbody>
   </table>
@@ -54,9 +54,12 @@ export default {
 </script>
 
 <style>
+.format-string, input.format-string{
+  font-family: Bitstream Vera Sans Mono;
+}
 #guide {
-  margin-top: 15px;
-  margin-bottom: 5px;
+  margin-top: 1em;
+  margin-bottom: .5em;
 }
 #datetime-format-label, #datetime-string, #datetime-format-field, #guide, #more-details, .label, .displayfield {
   text-align: center;
