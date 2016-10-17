@@ -1,12 +1,6 @@
 <template>
   <div id="app">
-    <div id="toolbar" class="toolbar">
-      <div id="toolbar-links" class="toolbar-links">
-        <a id="signup" @click.prevent="clickSignup" href="#" class="btn toolbar-link click-link" title="sign up">Sign up</a>
-        <a id="login" @click.prevent="clickLogin" href="#" class="btn toolbar-link click-link" title="login">Login</a>
-        <a @click.prevent="clickOpenSettings" href="#" class="btn toolbar-link" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
-      </div>
-    </div>
+    <toolbar></toolbar>
     <p id="datetime">{{ datetimeString }}</p>
   </div>
 </template>
