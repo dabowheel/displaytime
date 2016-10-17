@@ -1,7 +1,22 @@
 import Vue from 'vue'
 import App from './App.vue'
+import page from 'page'
+import Settings from './Settings.vue'
 
-new Vue({
+const app = new Vue({
   el: '#app',
-  render: h => h(App)
+  data: {
+    ViewComponent: App
+  },
+  render (h) {
+    return h(this.ViewComponent)
+  }
+})
+
+page('/', function () {
+  app.ViewComponent = App
+})
+
+page('/settings', function () {
+  app.ViewComponent = Settings
 })

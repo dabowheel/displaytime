@@ -1,7 +1,13 @@
 <template>
 <div id="settings">
+  <div id="toolbar" class="toolbar">
+    <div id="toolbar-links" class="toolbar-links">
+      <span class="header">Settings</span>
+      <a @click.prevent="clickCloseSettings" href="#" class="btn toolbar-link" title="show settings"><i class="fa fa-times fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
+    </div>
+  </div>
   <div id="datetime-format-label">Date/Time format:</div>
-  <div id="datetime-format-field"><input id="datetime-format-input" class="format-string" type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></div>
+  <div id="datetime-format-field"><input id="datetime-format-input" class="format-string" type="text" v-model="datetimeFormat" placeholder="date/time format"/></div>
   <div class="displayfield">{{datetimeString}}</div>
   <div id="guide">Guide</div>
   <table id="guide-table" border="1">
@@ -30,30 +36,48 @@
 </template>
 
 <script>
+import moment from 'moment';
+import page from 'page';
+
 export default {
   data () {
+    var datetime = moment();
+    var datetimeFormat = localStorage.datetimeFormat ? localStorage.datetimeFormat: "llll";
     return {
-      myDatetimeFormat: this.datetimeFormat,
+      datetime: datetime,
+      datetimeFormat: datetimeFormat,
+      datetimeString: datetime.format(datetimeFormat)
     }
   },
-  props: [
-    "datetimeFormat",
-    "datetimeString"
-  ],
-  methods: {
-  },
   watch: {
-    open () {
-      document.getElementById("settings").style.display = (this.open) ? "inline": "none";
+    datetime: function (newDatetime) {
+      this.datetimeString = newDatetime.format(this.datetimeFormat);
     },
-    myDatetimeFormat (newFormat) {
-      this.$emit("setDatetimeFormat", newFormat);
+    datetimeFormat: function (newFormat) {
+      this.datetimeString = this.datetime.format(newFormat);
+      localStorage.datetimeFormat = newFormat;
+    }
+  },
+  created() {
+    setInterval(function () {
+      this.datetime = moment();
+    }.bind(this), 1000);
+  },
+  methods: {
+    clickCloseSettings() {
+      page('/');
     }
   }
 }
 </script>
 
 <style>
+.header {
+  font-size: 1.5em;
+}
+.toolbar {
+  margin-bottom: 1em;
+}
 .format-string, input.format-string{
   font-family: Bitstream Vera Sans Mono;
 }
