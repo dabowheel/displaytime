@@ -7,14 +7,13 @@
         <a @click.prevent="clickOpenSettings" href="#" class="btn toolbar-link" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
       </div>
     </div>
-    <router-link to="/settings">Settings</router-link>
-    <router-view></router-view>
     <p id="datetime">{{ datetimeString }}</p>
   </div>
 </template>
 
 <script>
 import moment from 'moment';
+import page from 'page';
 
 export default {
   data () {
@@ -37,6 +36,7 @@ export default {
   },
   methods: {
     clickOpenSettings () {
+      page('/settings');
     },
     handleDatetimeFormat(newFormat) {
       this.datetimeFormat = newFormat;
