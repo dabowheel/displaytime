@@ -75,6 +75,9 @@ export default {
 .header {
   font-size: 1.5em;
 }
+.toolbar {
+  margin-bottom: 1em;
+}
 .format-string, input.format-string{
   font-family: Bitstream Vera Sans Mono;
 }
