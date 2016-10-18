@@ -29,7 +29,6 @@
   .toolbar-link {
       color: #444444;
   }
-
   .toolbar {
     margin-right: 1em;
     margin-bottom: 1em;
