@@ -51,7 +51,7 @@
 
 <style>
 .format-string, input.format-string{
-  font-family: Bitstream Vera Sans Mono;
+  font-family: Bitstream Vera Sans Mono, monospace;
 }
 #guide {
   margin-top: 1em;
