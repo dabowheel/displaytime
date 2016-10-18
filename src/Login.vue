@@ -40,7 +40,7 @@
     margin: 0 auto;
   }
   .form-group {
-    margin-top: 1em;
+    margin-bottom: 1em;
   }
   .login-field {
     width: 100%;

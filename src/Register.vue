@@ -45,7 +45,7 @@
     margin: 0 auto;
   }
   .form-group {
-    margin-top: 1em;
+    margin-bottom: 1em;
   }
   .register-field {
     width: 100%;
