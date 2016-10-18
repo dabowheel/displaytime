@@ -1,11 +1,12 @@
 <template>
   <div id="toolbar" class="toolbar">
     <div id="toolbar-links" class="toolbar-links">
-    <a v-if="$route.path == '/'" href="#" class="btn toolbar-link click-link" title="sign up">Sign up</a>
+    <router-link v-if="$route.path == '/'" to="/register" class="btn toolbar-link click-link" title="sign up">Sign up</router-link>
     <a v-if="$route.path == '/'" href="#" class="btn toolbar-link click-link" title="login">Login</a>
     <span v-if="$route.path == '/settings'" class="header">Settings</span>
+    <span v-if="$route.path == '/register'" class="header">Sign up</span>
     <router-link v-if="$route.path == '/'" to="/settings" class="btn toolbar-link" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></router-link>
-    <router-link v-if="$route.path == '/settings'" to="/" class="btn toolbar-link" title="close settings"><i class="fa fa-times fa-2x click-icon settings-nav" aria-hidden="true"></i></router-link>
+    <router-link v-if="$route.path != '/'" to="/" class="btn toolbar-link" title="close settings"><i class="fa fa-times fa-2x click-icon settings-nav" aria-hidden="true"></i></router-link>
     </div>
   </div>
 </template>
