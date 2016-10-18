@@ -2,7 +2,7 @@
   <div id="app">
     <toolbar></toolbar>
     <router-view></router-view>
-    <div v-if="$route.path == '/'" id="datetime">{{ datetimeString }}</div>
+    <div v-if="$route.path == '/'" class="datetime">{{ datetimeString }}</div>
   </div>
 </template>
 
@@ -31,7 +31,7 @@ body {
   margin: 0;
   padding: 0;
 }
-#datetime {
+.datetime {
   text-align: center;
   font-size: 2em;
 }
