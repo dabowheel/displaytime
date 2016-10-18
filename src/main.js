@@ -5,6 +5,7 @@ import moment from 'moment'
 import App from './App.vue'
 import Settings from './Settings.vue'
 import Register from './Register.vue'
+import Login from './Login.vue'
 
 Vue.use(VueRouter)
 Vue.use(Vuex)
@@ -17,6 +18,10 @@ const routes = [
   {
     path: '/register',
     component: Register
+  },
+  {
+    path: '/login',
+    component: Login
   }
 ];
 const router = new VueRouter({
