@@ -1,7 +1,7 @@
 <template>
 <div id="settings">
   <div id="datetime-format-label">Date/Time format:</div>
-  <div id="datetime-format-field"><input id="datetime-format-input" class="format-string" type="text" v-model="myDatetimeFormat" placeholder="date/time format"/></div>
+  <div id="datetime-format-field"><input id="datetime-format-input" class="format-string" type="text" v-model="datetimeFormat" placeholder="date/time format"/></div>
   <div class="displayfield">{{datetimeString}}</div>
   <div id="guide">Guide</div>
   <table id="guide-table" border="1">
@@ -30,27 +30,23 @@
 </template>
 
 <script>
-export default {
-  data () {
-    return {
-      myDatetimeFormat: this.datetimeFormat,
-    }
-  },
-  props: [
-    "datetimeFormat",
-    "datetimeString"
-  ],
-  methods: {
-  },
-  watch: {
-    open () {
-      document.getElementById("settings").style.display = (this.open) ? "inline": "none";
+  export default {
+    data () {
+      return {
+        datetimeFormat: this.$store.state.datetimeFormat
+      }
     },
-    myDatetimeFormat (newFormat) {
-      this.$emit("setDatetimeFormat", newFormat);
+    computed: {
+      datetimeString() {
+        return this.$store.state.datetimeString
+      }
+    },
+    watch: {
+      datetimeFormat() {
+        this.$store.commit('setDatetimeFormat', this.datetimeFormat)
+      }
     }
   }
-}
 </script>
 
 <style>
