@@ -8,8 +8,8 @@
     <div class="toolbar-links">
       <router-link v-if="$route.path == '/'" to="/register" class="btn toolbar-link click-link" title="sign up">Sign up</router-link>
       <router-link v-if="$route.path == '/'" to="/login" class="btn toolbar-link click-link" title="login">Login</router-link>
-      <router-link v-if="$route.path == '/'" to="/settings" class="btn toolbar-link icon-link" title="show settings"><i class="fa fa-cog fa-2x settings-nav" aria-hidden="true"></i></router-link>
-      <router-link v-if="$route.path != '/'" to="/" class="btn toolbar-link icon-link" title="close settings"><i class="fa fa-times fa-2x settings-nav" aria-hidden="true"></i></router-link>
+      <router-link v-if="$route.path == '/'" to="/settings" class="btn toolbar-link icon-link" title="show settings"><i class="fa fa-cog fa-2x" aria-hidden="true"></i></router-link>
+      <router-link v-if="$route.path != '/'" to="/" class="btn toolbar-link icon-link" title="close settings"><i class="fa fa-times fa-2x" aria-hidden="true"></i></router-link>
     </div>
     <div class="toolbar-separator"></div>
   </div>
@@ -20,6 +20,7 @@
     mobile
   */
   .toolbar {
+    margin-top: .5em;
     margin-left: 1em;
     margin-right: 1em;
   }
@@ -51,7 +52,7 @@
     margin-left: .5em;
   }
   .icon-link {
-    margin-left: .25em;
+    margin-left: .3em;
   }
   .header {
     line-height: 2em;
