@@ -2,12 +2,13 @@
   <div id="app">
     <div id="toolbar" class="toolbar">
       <div id="toolbar-links" class="toolbar-links">
-        <a id="signup" @click.prevent="clickSignup" href="#" class="btn toolbar-link click-link" title="sign up">Sign up</a>
-        <a id="login" @click.prevent="clickLogin" href="#" class="btn toolbar-link click-link" title="login">Login</a>
-        <a @click.prevent="clickOpenSettings" href="#" class="btn toolbar-link" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></a>
+        <a v-if="$route.path == '/'" @click.prevent="clickSignup" href="#" class="btn toolbar-link click-link" title="sign up">Sign up</a>
+        <a v-if="$route.path == '/'" @click.prevent="clickLogin" href="#" class="btn toolbar-link click-link" title="login">Login</a>
+        <span v-if="$route.path == '/settings'" class="header">Settings</span>
+        <router-link v-if="$route.path == '/'" to="/settings" class="btn toolbar-link" title="show settings"><i class="fa fa-cog fa-2x click-icon settings-nav" aria-hidden="true"></i></router-link>
+        <router-link v-if="$route.path == '/settings'" to="/" class="btn toolbar-link" title="close settings"><i class="fa fa-times fa-2x click-icon settings-nav" aria-hidden="true"></i></router-link>
       </div>
     </div>
-    <router-link to="/settings">Settings</router-link>
     <router-view></router-view>
     <p id="datetime">{{ datetimeString }}</p>
   </div>
@@ -17,41 +18,10 @@
 import moment from 'moment';
 
 export default {
-  data () {
-    var datetime = moment();
-    var datetimeFormat = localStorage.datetimeFormat ? localStorage.datetimeFormat: "llll";
-    return {
-      datetime: datetime,
-      datetimeFormat: datetimeFormat,
-      datetimeString: datetime.format(datetimeFormat)
+  computed: {
+    datetimeString() {
+      return this.$store.state.datetimeString;
     }
-  },
-  watch: {
-    datetime: function (newDatetime) {
-      this.datetimeString = newDatetime.format(this.datetimeFormat);
-    },
-    datetimeFormat: function (newFormat) {
-      this.datetimeString = this.datetime.format(newFormat);
-      localStorage.datetimeFormat = newFormat;
-    }
-  },
-  methods: {
-    clickOpenSettings () {
-    },
-    handleDatetimeFormat(newFormat) {
-      this.datetimeFormat = newFormat;
-    },
-    clickSignup () {
-
-    },
-    clickLogin () {
-
-    }
-  },
-  created() {
-    setInterval(function () {
-      this.datetime = moment();
-    }.bind(this), 1000);
   }
 }
 </script>
@@ -79,7 +49,7 @@ body {
 .toolbar-link:link, .toolbar-link:visited {
   text-decoration: none;
 }
-.toolbar-link:hover, .toolbar-link:active {
+.click-link:hover, .click-link:active {
   text-decoration: underline;
 }
 .toolbar-link:hover, .toolbar-link:active {
@@ -99,8 +69,8 @@ body {
 .click-icon {
   font-size: 2em;
 }
-#settings-header {
-  font-size: 2em;
+.header {
+  font-size: 1.5em;
 }
 
 /*
