@@ -10,7 +10,7 @@
       </div>
     </div>
     <router-view></router-view>
-    <p id="datetime">{{ datetimeString }}</p>
+    <div v-if="$route.path == '/'" id="datetime">{{ datetimeString }}</div>
   </div>
 </template>
 
@@ -31,7 +31,7 @@ export default {
   Default to mobile
 */
 
-body {
+  body {
   font-family: Helvetica, sans-serif;
   margin: 0;
   padding: 0;
@@ -61,6 +61,7 @@ body {
 
 .toolbar {
   margin-right: 1em;
+  margin-bottom: 1em;
 }
 .click-link {
   font-height: 2em;
