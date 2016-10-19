@@ -1,22 +1,31 @@
 <template>
   <div id="register">
-    <div class="form">
+    <form id="signUpForm" class="form">
       <div class="form-group">
-        <label class='register-label'>Email Address:</label>
-        <input id='email' type='text' class="register-field" v-model='email'>
+        <label for='email' class='register-label'>Email Address:</label>
+        <input id='email' type='text' class="register-field" data-h5-errorid="invalid-email" required title='Email is required' v-model='email'>
+        <div v-if='validateEmail && emailError != ""' class='error'>
+          {{ emailError}}
+        </div>
       </div>
       <div class="form-group">
-        <label class='register-label'>Password:</label>
-        <input id='password' type='password' class="register-field" v-model='password'>
+        <label for='password' class='register-label'>Password:</label>
+        <input id='password' type='password' class="register-field" data-h5-errorid='invalid-password' required title='Password is required' v-model='password'>
+        <div v-if='validatePassword && passwordError != ""' class='error'>
+          {{ passwordError }}
+        </div>
       </div>
       <div class="form-group">
-        <label class='register-label'>Confirm Password:</label>
-        <input id='confirmPassword' type='password' class="register-field" v-model='confirmPassword'>
+        <label for='confirmPassword' class='register-label'>Confirm Password:</label>
+        <input id='confirmPassword' type='password' class="register-field" data-h5-errorid='invalid-confirm-password' required title='Confirm Password is required' v-model='confirmPassword'>
+        <div v-if='validateConfirmPassword && confirmPasswordError != ""' class="error">
+          {{ confirmPasswordError }}
+        </div>
       </div>
       <div class="form-group">
-        <button v-bind:disabled="valid == false">Sign Up</button>
+        <button v-on:click.prevent="clickSignUp" type="submit">Sign Up</button>
       </div>
-    </div>
+    </form>
   </div>
 </template>
 
@@ -26,25 +35,28 @@
       return {
         email: "",
         password: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        validateEmail: false,
+        validatePassword: false,
+        validateConfirmPassword: false
       }
     },
     computed: {
-      checkEmail() {
+      emailError() {
         if (!this.email)
           return "Email needs a value"
         if (!((/[^ @]+@[^ @]+/).exec(this.email)))
           return "Email must be a valid email address"
         return ""
       },
-      checkPassword() {
+      passwordError() {
         if (!this.password)
           return "Password needs a value"
         if (this.password.length < 8)
           return "Password must be at least 8 characters"
         return ""
       },
-      checkConfirmPassword() {
+      confirmPasswordError() {
         if (this.checkPassword)
           return ""
         if (!this.confirmPassword)
@@ -54,22 +66,32 @@
         return ""
       },
       valid() {
-        return (this.checkEmail + this.checkPassword + this.checkConfirmPassword) == ""
+        return true;
+        return (this.emailError + this.passwordError + this.confirmPasswordError) == ""
       }
     },
     watch: {
       email() {
-        document.getElementById("email").setCustomValidity(this.checkEmail)
+        if (this.email)
+          this.validateEmail = true
       },
       password() {
-        document.getElementById("password").setCustomValidity(this.checkPassword)
-        document.getElementById("confirmPassword").setCustomValidity(this.checkConfirmPassword)
+        if (this.password)
+          this.validatePassword = true
       },
       confirmPassword() {
-        document.getElementById("confirmPassword").setCustomValidity(this.checkConfirmPassword)
+        if (this.confirmPassword)
+          this.validateConfirmPassword = true
+      }
+    },
+    methods: {
+      clickSignUp() {
+        this.validateEmail = true
+        this.validatePassword = true
+        this.validateConfirmPassword = true
       }
     }
-  };
+  }
 </script>
 
 <style>
@@ -89,5 +111,8 @@
   }
   input {
     box-sizing: border-box;
+  }
+  .error {
+    color: red;
   }
 </style>
