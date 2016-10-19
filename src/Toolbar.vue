@@ -52,7 +52,7 @@
     margin-left: .5em;
   }
   .icon-link {
-    margin-left: .3em;
+    margin-left: .5em;
   }
   .header {
     line-height: 2em;
