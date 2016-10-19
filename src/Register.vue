@@ -33,7 +33,7 @@
       checkEmail() {
         if (!this.email)
           return "Email needs a value"
-        if (this.email.indexOf('@') == -1)
+        if (!((/[^ @]+@[^ @]+/).exec(this.email)))
           return "Email must be a valid email address"
         return ""
       },
