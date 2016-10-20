@@ -3,14 +3,20 @@
     <div class="form">
       <div class="form-group">
         <label class='login-label'>Email Address:</label>
-        <input type='text' class="login-field" v-model='email'>
+        <input type='email' v-bind:class='{ fieldError: validateEmail && emailError }' class="login-field" v-model='email'>
+        <div v-if='validateEmail && emailError' class='error'>
+          {{ emailError }}
+        </div>
       </div>
       <div class="form-group">
         <label class='login-label'>Password:</label>
-        <input type='password' class="login-field" v-model='password'>
+        <input type='password' v-bind:class='{ fieldError: validatePassword && passwordError }' class="login-field" v-model='password'>
+        <div v-if='validatePassword && passwordError' class='error'>
+          {{ passwordError}}
+        </div>
       </div>
       <div class="form-group">
-        <button>Login</button>
+        <button v-bind:click.prevent='clickLogin' v-bind:disabled='!valid'>Login</button>
       </div>
     </div>
   </div>
@@ -22,12 +28,44 @@
       return {
         email: "",
         password: "",
+        validateEmail: false,
+        validatePassword: false
       }
     },
     computed: {
-      
+      emailError() {
+        if (!this.email)
+          return "Email Address needs a value"
+        if (!(/[^ @]+@[^ @]+/).exec(this.email))
+          return "Invalid email address"
+        return ""
+      },
+      passwordError() {
+        if (!this.password)
+          return "Password needs a value"
+        return ""
+      },
+      valid() {
+        return (this.emailError + this.passwordError) == ""
+      }
+    },
+    watch: {
+      email() {
+        if (this.email)
+          this.validateEmail = true
+      },
+      password() {
+        if (this.password)
+          this.validatePassword = true
+      }
+    },
+    methods: {
+      clickLogin() {
+        this.validateEmail = true
+        this.validatePassword = true
+      }
     }
-  };
+  }
 </script>
 
 <style>
@@ -47,5 +85,11 @@
   }
   input {
     box-sizing: border-box;
+  }
+  .field-error {
+    border-color: red;
+  }
+  .error {
+    color: red;
   }
 </style>
