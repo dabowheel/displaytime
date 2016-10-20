@@ -30,6 +30,8 @@
 </template>
 
 <script>
+  import {packSignup, api} from './com'
+
   export default {
     data () {
       return {
@@ -88,6 +90,17 @@
         this.validateEmail = true
         this.validatePassword = true
         this.validateConfirmPassword = true
+
+        if (this.valid) {
+          var body = packSignup({
+            email: this.email,
+            password: this.password
+          })
+
+          api('POST', 'signup', body, function (body) {
+            console.log('response', body)
+          })
+        }
       }
     }
   }
