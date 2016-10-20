@@ -1,13 +1,15 @@
 CFLAGS = -Wall -O3 -g
-all: build.js
-build.js:
+LDFLAGS = -lfcgi -laqua
+LDPATH = -L/usr/local/lib
+all: public/build.js displaytime
+public/build.js: src/*.js src/*.vue
 	webpack
-wmain: main.o
-	gcc -o main main.o -lfcgi -L/usr/local/lib -laqua
+displaytime: main.o
+	gcc -o displaytime main.o $(LDPATH) $(LDFLAGS)
 main.o: main.c
 	gcc -c main.c $(CFLAGS)
 clean:
-	rm -f main *.o
+	rm -f displayname *.o
 deploy:
 	rm -rf /var/www/html/*
 	cp -R public/* /var/www/html

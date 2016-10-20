@@ -1,4 +1,4 @@
-main
+displaytime
 *.o
 node_modules
 public/build.js
