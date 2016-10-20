@@ -1,23 +1,23 @@
 <template>
-  <div id="register">
+  <div id="signup">
     <form id="signUpForm" class="form">
       <div class="form-group">
-        <label for='email' class='register-label'>Email Address:</label>
-        <input id='email' type='email' v-bind:class='{fieldError: validateEmail && emailError}' class="register-field" v-model='email'>
+        <label for='email' class='signup-label'>Email Address:</label>
+        <input id='email' type='email' v-bind:class='{fieldError: validateEmail && emailError}' class="signup-field" v-model='email'>
         <div v-if='validateEmail && emailError != ""' class='error'>
           {{ emailError}}
         </div>
       </div>
       <div class="form-group">
-        <label for='password' class='register-label'>Password:</label>
-        <input id='password' type='password' v-bind:class='{fieldError: validatePassword && passwordError}' class="register-field" v-model='password'>
+        <label for='password' class='signup-label'>Password:</label>
+        <input id='password' type='password' v-bind:class='{fieldError: validatePassword && passwordError}' class="signup-field" v-model='password'>
         <div v-if='validatePassword && passwordError != ""' class='error'>
           {{ passwordError }}
         </div>
       </div>
       <div class="form-group">
-        <label for='confirmPassword' class='register-label'>Confirm Password:</label>
-        <input id='confirmPassword' type='password' v-bind:class='{fieldError: validateConfirmPassword && confirmPasswordError}' class="register-field" v-model='confirmPassword'>
+        <label for='confirmPassword' class='signup-label'>Confirm Password:</label>
+        <input id='confirmPassword' type='password' v-bind:class='{fieldError: validateConfirmPassword && confirmPasswordError}' class="signup-field" v-model='confirmPassword'>
         <div v-if='validateConfirmPassword && confirmPasswordError != ""' class="error">
           {{ confirmPasswordError }}
         </div>
@@ -105,7 +105,7 @@
   .form-group {
     margin-bottom: 1em;
   }
-  .register-field {
+  .signup-field {
     width: 100%;
   }
   input {

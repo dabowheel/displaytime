@@ -4,7 +4,7 @@ import Vuex from 'vuex'
 import moment from 'moment'
 import App from './App.vue'
 import Settings from './Settings.vue'
-import Register from './Register.vue'
+import Signup from './Signup.vue'
 import Login from './Login.vue'
 
 Vue.use(VueRouter)
@@ -16,8 +16,8 @@ const routes = [
     component: Settings
   },
   {
-    path: '/register',
-    component: Register
+    path: '/signup',
+    component: Signup
   },
   {
     path: '/login',
