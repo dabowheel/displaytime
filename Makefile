@@ -1,5 +1,5 @@
 CFLAGS = -Wall -O3 -g
-LDFLAGS = -lfcgi -laqua
+LDFLAGS = -lfcgi -laqua -lsqlite3
 LDPATH = -L/usr/local/lib
 all: public/build.js displaytime
 public/build.js: src/*.js src/*.vue

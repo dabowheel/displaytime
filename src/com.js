@@ -20,7 +20,7 @@ function  api (method, path, body, callback) {
       }
     }
   }
-  request.open(method, 'http://localhost/api/' + path + '.cgi', true)
+  request.open(method, 'http://' + location.host + '/api/' + path + '.cgi', true)
   if (body) {
     request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
   }
