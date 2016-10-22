@@ -103,27 +103,25 @@ response signup(request req, a_string body)
     a_string email;
     a_string password;
 
-    // sqlite3 *db;
-    // int rc;
     // a_string_builder query;
     // char *zErrMsg;
-    // char *error;
     // query = a_sbldcreate();
 
-    // rc = sqlite3_open("db", &db);
-    // if (rc) {
-    //     error = sqlite3_errmsg(rc);
-    //     sqlite3_close(db);
-    //     res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
-    //     a_sbldaddcstr(res.body, "Error opening database: ");
-    //     a_sbldaddcstr(res.body, error);
-    //     send(res);
-    //     return NULL:
-    // }
-    // a_sbldaddcstr(query, "INSERT INTO user VALUES (\"");
-    // a_sbldaddcstr(query, req)
+    sqlite3 *db;
+    int rc;
+    const char *error;
 
-    // rc = sqlite3_exec(db, "", callback, 0, &zErrMsg);
+    rc = sqlite3_open("db", &db);
+    if (rc) {
+        error = sqlite3_errmsg(db);
+        sqlite3_close(db);
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Error opening database: ");
+        a_sbldaddcstr(res->body, error);
+        send(res);
+        return NULL;
+    }
+    sqlite3_close(db);
 
     table = a_decodeForm(body);
     email = a_htGet(table, a_cstr2s("email"));
