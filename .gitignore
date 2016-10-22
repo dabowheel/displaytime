@@ -2,3 +2,6 @@ displaytime
 *.o
 node_modules
 public/build.js
+*.pid
+core
+db

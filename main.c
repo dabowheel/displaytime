@@ -17,7 +17,8 @@ typedef struct request {
 typedef struct response {
     int status;
     a_string statusText;
-    a_string body;
+    a_string contentType;
+    a_string_builder body;
 } *response;
 
 request getRequest()
@@ -43,11 +44,29 @@ void destroyRequest(request req)
     }
 }
 
-response createResponse(int status, a_string statusText, a_string body)
+void printHeader()
+{
+    printf("Content-type: text/html\r\n\r\n");
+}
+
+void printRequest(request req)
+{
+    printf("<p>\n");
+    printf("request_uri = %s\n", req->request_uri->data);
+    printf("method = %s\n", req->method->data);
+    printf("content_type = %s\n", req->content_type->data);
+    printf("content_length = %s\n", req->content_length->data);
+    printf("query_string = %s\n", req->query_string->data);
+    printf("</p>\n");
+}
+
+response createResponse(int status, a_string statusText, a_string contentType)
 {
     response res = malloc(sizeof(struct response));
+    res->status = status;
     res->statusText = statusText;
-    res->body = body;
+    res->contentType = contentType;
+    res->body = a_sbldcreate();
     return res;
 }
 
@@ -55,71 +74,104 @@ void destroyResponse(response res)
 {
     if (res) {
         a_sdestroy(res->statusText);
-        a_sdestroy(res->body);
+        a_sdestroy(res->contentType);
+        a_sblddestroy(res->body);
         free(res);
     }
 }
 
-static int callback(void *NotUsed, int argc, char **argv, char **azColName)
+// static int callback(void *NotUsed, int argc, char **argv, char **azColName)
+// {
+//     return 0;
+// }
+
+void send(response res)
 {
-    return 0;
+    a_string body;
+    printf("Status: %d %s\r\n", res->status, res->statusText->data);
+    printf("Content-Type: %s\r\n\r\n", res->contentType->data);
+    body = a_sbld2s(res->body);
+    printf(body->data);
+    a_sdestroy(body);
 }
 
 response signup(request req, a_string body)
 {
-    sqlite3 *db;
-    int rc;
-    a_string_builder b;
-    b = a_sbldcreate();
-    a_sbldaddcstr(b, "INSERT INTO user VALUES (\"");
-    char *zErrMsg;
 
-    rc = sqlite3_open("db", &db);
-    if (rc) {
-        sqlite3_close(db);
-        return createResponse(500, a_cstr2s("Application Error"), a_cstr2s("Cannot open database"));
-    }
+    response res;
+    a_hash_table table;
+    a_string email;
+    a_string password;
 
-    rc = sqlite3_exec(db, "", callback, 0, &zErrMsg);
+    // sqlite3 *db;
+    // int rc;
+    // a_string_builder query;
+    // char *zErrMsg;
+    // char *error;
+    // query = a_sbldcreate();
+
+    // rc = sqlite3_open("db", &db);
+    // if (rc) {
+    //     error = sqlite3_errmsg(rc);
+    //     sqlite3_close(db);
+    //     res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+    //     a_sbldaddcstr(res.body, "Error opening database: ");
+    //     a_sbldaddcstr(res.body, error);
+    //     send(res);
+    //     return NULL:
+    // }
+    // a_sbldaddcstr(query, "INSERT INTO user VALUES (\"");
+    // a_sbldaddcstr(query, req)
+
+    // rc = sqlite3_exec(db, "", callback, 0, &zErrMsg);
+
+    table = a_decodeForm(body);
+    email = a_htGet(table, a_cstr2s("email"));
+    password = a_htGet(table, a_cstr2s("password"));
+    res = createResponse(200, a_cstr2s("OK"), a_cstr2s("text/html"));
+    a_sbldaddcstr(res->body, "email = ");
+    a_sbldadds(res->body, email);
+    a_sbldaddcstr(res->body, "\npassword = ");
+    a_sbldadds(res->body, password);
+    a_sbldaddcstr(res->body, "\nhello\n");
+    send(res);
+
     return NULL;
+}
+
+void handle404(request req)
+{
+   response res = createResponse(404, a_cstr2s("Not Found"), a_cstr2s("text/html"));
+   a_sbldaddcstr(res->body, "Endpoint not found.");
+   send(res);
 }
 
 response handleRequest(request req, a_string body)
 {
     char *path = req->request_uri->data;
-    if (strcmp(path, "/api/signup.cgi")) {
+    if (strcmp(path, "/api/signup.cgi") == 0) {
         return signup(req, body);
     }
-
-    return createResponse(404, a_cstr2s("Not Found"), a_cstr2s("Endpoint not found."));
+    handle404(req);
+    return NULL;
 }
 
-int main(void)
-{
+ 
 
+int main()
+{
     while(FCGI_Accept() >= 0) {
         request req = getRequest();
         int c;
         a_string_builder b;
         a_string body;
 
-        printf("Content-type: text/html\r\n\r\n");
-        printf("<p>\n");
-        printf("request_uri = %s\n", req->request_uri->data);
-        printf("method = %s\n", req->method->data);
-        printf("content_type = %s\n", req->content_type->data);
-        printf("content_length = %s\n", req->content_length->data);
-        printf("query_string = %s\n", req->query_string->data);
-        printf("</p>\n");
-
         b = a_sbldcreate();
         while ((c = FCGI_getchar()) != EOF) {
             a_sbldaddchar(b, c);
         }
-
         body = a_sbld2s(b);
-        printf("<p>%s</p>\n", body->data);
-
+        handleRequest(req, body);
         destroyRequest(req);
         a_sdestroy(body);
     }

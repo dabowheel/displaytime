@@ -13,3 +13,4 @@ clean:
 deploy:
 	rm -rf /var/www/html/*
 	cp -R public/* /var/www/html
+	bin/restart.sh
