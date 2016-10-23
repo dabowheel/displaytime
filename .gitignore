@@ -5,3 +5,4 @@ public/build.js
 *.pid
 core
 db
+displaytime.db

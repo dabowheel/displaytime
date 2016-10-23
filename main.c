@@ -105,16 +105,25 @@ response signup(request req, a_string body)
     a_string query;
     a_string query2;
     a_string error2;
-
-    // a_string_builder query;
-    // char *zErrMsg;
-    // query = a_sbldcreate();
-
     sqlite3 *db;
     int rc;
     const char *error;
+    char *error3;
 
-    rc = sqlite3_open("db", &db);
+    query = a_cstr2s("INSERT INTO user VALUES (?, ?);");
+    table = a_decodeForm(body);
+    email = a_htGet(table, a_cstr2s("email"));
+    password = a_htGet(table, a_cstr2s("password"));
+    query2 = a_sqlformat(query, &error2, email, password);
+    if (!query2) {
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Internal Error: ");
+        a_sbldadds(res->body, error2);
+        send(res);
+        return NULL;
+    }
+
+    rc = sqlite3_open("displaytime.db", &db);
     if (rc) {
         error = sqlite3_errmsg(db);
         sqlite3_close(db);
@@ -124,29 +133,21 @@ response signup(request req, a_string body)
         send(res);
         return NULL;
     }
+
+    rc = sqlite3_exec(db, query2->data, NULL, NULL, &error3);
+    if (rc) {
+        sqlite3_close(db);
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Error executing database statement: ");
+        a_sbldaddcstr(res->body, error3);
+        sqlite3_free(error3);
+        send(res);
+        return NULL;        
+    }
     sqlite3_close(db);
 
-    query = a_cstr2s("INSERT INTO user VALUES (?, ?);");
-    table = a_decodeForm(body);
-    email = a_htGet(table, a_cstr2s("email"));
-    password = a_htGet(table, a_cstr2s("password"));
-    query2 = a_sqlformat(query, &error2, email, password);
 
     res = createResponse(200, a_cstr2s("OK"), a_cstr2s("text/html"));
-    a_sbldaddcstr(res->body, "email = ");
-    a_sbldadds(res->body, email);
-    a_sbldaddcstr(res->body, "\npassword = ");
-    a_sbldadds(res->body, password);
-    a_sbldaddcstr(res->body, "\nhello\n");
-    a_sbldaddcstr(res->body, "query = ");
-    a_sbldadds(res->body, query);
-    if (query2) {
-        a_sbldaddcstr(res->body, "\nquery2 = ");
-        a_sbldadds(res->body, query2);
-    } else {
-        a_sbldaddcstr(res->body, "\nerror = ");
-        a_sbldadds(res->body, error2);
-    }
     send(res);
 
     return NULL;
