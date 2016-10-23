@@ -97,9 +97,15 @@
             password: this.password
           })
 
-          api('POST', 'signup', body, function (body) {
-            console.log('response', body)
-          })
+          api('POST', 'signup', body, function (status, body) {
+            if (status !== 200) {
+              this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")
+              this.$router.push('error')
+              return;
+            }
+
+            this.$router.push('signupResult')
+          }.bind(this))
         }
       }
     }

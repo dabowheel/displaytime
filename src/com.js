@@ -13,11 +13,10 @@ function  api (method, path, body, callback) {
   var request = new XMLHttpRequest()
   request.onreadystatechange = function () {
     if (request.readyState === XMLHttpRequest.DONE) {
-      if (request.status === 200) {
-        callback(request.responseText)
-      } else {
+      if (request.status !== 200) {
         console.error(request.status, request.responseText)
       }
+      callback(request.status, request.responseText)
     }
   }
   request.open(method, 'http://' + location.host + '/api/' + path + '.cgi', true)

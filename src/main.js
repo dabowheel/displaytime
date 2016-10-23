@@ -6,6 +6,8 @@ import App from './App.vue'
 import Settings from './Settings.vue'
 import Signup from './Signup.vue'
 import Login from './Login.vue'
+import Error from './Error.vue'
+import SignupResult from './SignupResult.vue'
 
 Vue.use(VueRouter)
 Vue.use(Vuex)
@@ -22,6 +24,14 @@ const routes = [
   {
     path: '/login',
     component: Login
+  },
+  {
+    path: '/error',
+    component: Error
+  },
+  {
+    path: '/signupResult',
+    component: SignupResult
   }
 ];
 const router = new VueRouter({
@@ -37,7 +47,8 @@ const store = new Vuex.Store({
   state: {
     datetime: datetime,
     datetimeFormat: datetimeFormat,
-    datetimeString: datetimeString
+    datetimeString: datetimeString,
+    lastError: ''
   },
   mutations: {
     updateDatetime(state) {
@@ -48,6 +59,9 @@ const store = new Vuex.Store({
       state.datetimeFormat = newFormat
       state.datetimeString = state.datetime.format(newFormat)
       localStorage.datetimeFormat = newFormat
+    },
+    setLastError(state, error) {
+      state.lastError = error;
     }
   }
 })
