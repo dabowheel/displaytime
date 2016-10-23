@@ -1,15 +1,21 @@
 CFLAGS = -Wall -O3 -g
 LDFLAGS = -lfcgi -laqua -lsqlite3
 LDPATH = -L/usr/local/lib
-all: public/build.js displaytime
-public/build.js: src/*.js src/*.vue
+all: public/build.js api
+public/build.js: ui/*
 	webpack
+api: build app
+build:
+	mkdir -p build
+app:
+	make -C build -f ../Makefile displaytime
 displaytime: main.o
 	gcc -o displaytime main.o $(LDPATH) $(LDFLAGS)
-main.o: main.c
-	gcc -c main.c $(CFLAGS)
+%.o: ../api/%.c
+	gcc -c $< $(CFLAGS)
 clean:
-	rm -f displayname *.o
+	rm -rf build
+	rm -f public/build.js
 deploy:
 	rm -rf /var/www/html/*
 	cp -R public/* /var/www/html

@@ -17,5 +17,5 @@ else
   echo no process
 fi
 
-spawn-fcgi -a 127.0.0.1 -p 9000 displaytime | sed -r 's/.+PID: //' > app.pid && \
+spawn-fcgi -a 127.0.0.1 -p 9000 build/displaytime | sed -r 's/.+PID: //' > app.pid && \
 echo the new process is `cat app.pid`
