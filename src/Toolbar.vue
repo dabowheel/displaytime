@@ -54,7 +54,7 @@
     margin-left: .5em;
   }
   .icon-link {
-    margin-left: .5em;
+    margin-left: .75em;
   }
   .header {
     line-height: 1.3em;
