@@ -102,6 +102,9 @@ response signup(request req, a_string body)
     a_hash_table table;
     a_string email;
     a_string password;
+    a_string query;
+    a_string query2;
+    a_string error2;
 
     // a_string_builder query;
     // char *zErrMsg;
@@ -123,15 +126,27 @@ response signup(request req, a_string body)
     }
     sqlite3_close(db);
 
+    query = a_cstr2s("INSERT INTO user VALUES (?, ?);");
     table = a_decodeForm(body);
     email = a_htGet(table, a_cstr2s("email"));
     password = a_htGet(table, a_cstr2s("password"));
+    query2 = a_sqlformat(query, &error2, email, password);
+
     res = createResponse(200, a_cstr2s("OK"), a_cstr2s("text/html"));
     a_sbldaddcstr(res->body, "email = ");
     a_sbldadds(res->body, email);
     a_sbldaddcstr(res->body, "\npassword = ");
     a_sbldadds(res->body, password);
     a_sbldaddcstr(res->body, "\nhello\n");
+    a_sbldaddcstr(res->body, "query = ");
+    a_sbldadds(res->body, query);
+    if (query2) {
+        a_sbldaddcstr(res->body, "\nquery2 = ");
+        a_sbldadds(res->body, query2);
+    } else {
+        a_sbldaddcstr(res->body, "\nerror = ");
+        a_sbldadds(res->body, error2);
+    }
     send(res);
 
     return NULL;
