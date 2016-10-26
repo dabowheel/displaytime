@@ -54,17 +54,17 @@
     text-decoration: underline;
   }
   .toolbar-link:hover, .toolbar-link:active {
-    color: black;
+    color: green;
   }
   .toolbar-link {
-    color: #5f5f5f;
+    color: purple;
   }
   .click-link {
     line-height: 2em;
     margin-left: .5em;
   }
   .icon-link {
-    margin-left: .75em;
+    margin-left: .5em;
   }
   .menu-link {
     margin-right: -.5em;
