@@ -30,7 +30,7 @@
 </template>
 
 <script>
-  import {packSignup, api} from './com'
+  import {packSignup, api, decodeForm} from './com'
 
   export default {
     data () {
@@ -104,7 +104,17 @@
               return;
             }
 
-            this.$router.push('signupResult')
+            var obj = decodeForm(body);
+            if (!obj.sessionID) {
+              console.error("sessionID not returned on signup");
+              this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")
+              this.$router.push('error')
+              return;
+            }
+
+            sessionStorage.sessionID = obj.sessionID;
+            this.$store.commit('setSessionID', obj.sessionID);
+            this.$router.push('/')
           }.bind(this))
         }
       }

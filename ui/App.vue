@@ -18,6 +18,11 @@ export default {
   },
   components: {
     toolbar: Toolbar
+  },
+  created() {
+    if (sessionStorage.sessionID) {
+      this.$store.commit('setSessionID', sessionStorage.sessionID);
+    }
   }
 }
 </script>

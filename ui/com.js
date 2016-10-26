@@ -26,4 +26,20 @@ function  api (method, path, body, callback) {
   request.send(body)
 }
 
-export { packSignup, api};
+function decodeForm(str)
+{
+  var obj = {}
+  var varArr = str.split("&");
+  for (var i = 0; i < varArr.length; i++) {
+    var pairArr = varArr[i].split("=")
+    var name = pairArr[0]
+    var value = pairArr[1]
+    if (name) {
+      obj[name] = value
+    }
+  }
+
+  return obj
+}
+
+export { packSignup, api, decodeForm}

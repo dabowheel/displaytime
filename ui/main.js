@@ -48,7 +48,8 @@ const store = new Vuex.Store({
     datetime: datetime,
     datetimeFormat: datetimeFormat,
     datetimeString: datetimeString,
-    lastError: ''
+    lastError: '',
+    sessionID: ''
   },
   mutations: {
     updateDatetime(state) {
@@ -62,6 +63,9 @@ const store = new Vuex.Store({
     },
     setLastError(state, error) {
       state.lastError = error;
+    },
+    setSessionID(state, id) {
+      state.sessionID = id;
     }
   }
 })

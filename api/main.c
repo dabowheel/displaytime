@@ -93,7 +93,7 @@ void send(response res)
     a_sdestroy(body);
 }
 
-a_string newSessionQuery(sqlite3_int64 id, a_string *errorptr)
+a_string newSessionQuery(sqlite3_int64 id, a_string *sessionIDptr, a_string *errorptr)
 {
     a_string query;
     a_string query2;
@@ -130,7 +130,6 @@ a_string newSessionQuery(sqlite3_int64 id, a_string *errorptr)
     query = a_cstr2s("INSERT INTO session(id, userID, expire) VALUES (?, ?, ?);");
     query2 = a_sqlformat(query, &error, sessionID, userID, expire);
     a_sdestroy(query);
-    a_sdestroy(sessionID);
     a_sdestroy(userID);
     a_sdestroy(expire);
     if (!query2) {
@@ -138,6 +137,7 @@ a_string newSessionQuery(sqlite3_int64 id, a_string *errorptr)
         return NULL;
     }
 
+    *sessionIDptr = sessionID;
     return query2;
 }
 
@@ -156,6 +156,7 @@ response signup(request req, a_string body)
     const char *error;
     char *error3;
     sqlite3_int64 id;
+    a_string sessionID;
 
     query = a_cstr2s("INSERT INTO user(email, password) VALUES (?, ?);");
     table = a_decodeForm(body);
@@ -194,7 +195,7 @@ response signup(request req, a_string body)
 
     /* build session insert query */
     id = sqlite3_last_insert_rowid(db);
-    query2 = newSessionQuery(id, &error2);
+    query2 = newSessionQuery(id, &sessionID, &error2);
     if (!query2) {
         res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
         a_sbldaddcstr(res->body, "Error creating session: ");
@@ -220,7 +221,10 @@ response signup(request req, a_string body)
     sqlite3_close(db);
 
 
-    res = createResponse(200, a_cstr2s("OK"), a_cstr2s("text/html"));
+    res = createResponse(200, a_cstr2s("OK"), a_cstr2s("application/x-www-form-urlencoded"));
+    a_sbldadds(res->body, a_cstr2s("sessionID="));
+    a_sbldaddcstr(res->body, url_encode(sessionID->data));
+    a_sdestroy(sessionID);
     send(res);
 
     return NULL;

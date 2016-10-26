@@ -10,8 +10,8 @@
       <router-link v-if="$route.path != '/'" to="/" class="btn toolbar-link icon-link" title="close settings"><i class="fa fa-times fa-2x" aria-hidden="true"></i></router-link>
     </div>
     <div class="toolbar-links">
-      <router-link v-if="$route.path == '/'" to="/signup" class="btn toolbar-link click-link" title="sign up">Sign up</router-link>
-      <router-link v-if="$route.path == '/'" to="/login" class="btn toolbar-link click-link" title="login">Login</router-link>
+      <router-link v-if="!$store.state.sessionID  && $route.path == '/'" to="/signup" class="btn toolbar-link click-link" title="sign up">Sign up</router-link>
+      <router-link v-if="!$store.state.sessionID  && $route.path == '/'" to="/login" class="btn toolbar-link click-link" title="login">Login</router-link>
     </div>
     <div class="toolbar-separator"></div>
   </div>
