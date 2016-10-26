@@ -5,6 +5,9 @@
 #include <aqua/aqua.h>
 #include <sqlite3.h>
 #include <string.h>
+#include <sys/time.h>
+#include <errno.h>
+#include <randomid.h>
 
 typedef struct request {
     a_string request_uri;
@@ -80,11 +83,6 @@ void destroyResponse(response res)
     }
 }
 
-// static int callback(void *NotUsed, int argc, char **argv, char **azColName)
-// {
-//     return 0;
-// }
-
 void send(response res)
 {
     a_string body;
@@ -93,6 +91,54 @@ void send(response res)
     body = a_sbld2s(res->body);
     printf(body->data);
     a_sdestroy(body);
+}
+
+a_string newSessionQuery(sqlite3_int64 id, a_string *errorptr)
+{
+    a_string query;
+    a_string query2;
+    struct timeval t;
+    int ret;
+    a_string sessionID;
+    a_string userID;
+    a_string expire;
+    a_string error;
+    charmap map;
+
+    /* session id */
+    map = Create62CharMap();
+    sessionID = randomID(30, map, &error);
+    cmDestroy(map);
+    if (!sessionID) {
+        *errorptr = error;
+        return NULL;
+    }
+
+    /* userID */
+    userID = a_itoa(id);
+
+    /* expire */
+    ret = gettimeofday(&t, NULL);
+    if (ret) {
+        *errorptr = a_cstr2s("Could not get time of day.");
+        return NULL;
+    }
+    t.tv_sec += 60 * 60 * 24 * 7;       /* 60 s/m * 60 m/h * 24 h/d * 7 = seconds/day * 7 */
+    expire = a_GetISOTime(&t);
+
+    /* query */
+    query = a_cstr2s("INSERT INTO session(id, userID, expire) VALUES (?, ?, ?);");
+    query2 = a_sqlformat(query, &error, sessionID, userID, expire);
+    a_sdestroy(query);
+    a_sdestroy(sessionID);
+    a_sdestroy(userID);
+    a_sdestroy(expire);
+    if (!query2) {
+        *errorptr = error;
+        return NULL;
+    }
+
+    return query2;
 }
 
 response signup(request req, a_string body)
@@ -109,8 +155,9 @@ response signup(request req, a_string body)
     int rc;
     const char *error;
     char *error3;
+    sqlite3_int64 id;
 
-    query = a_cstr2s("INSERT INTO user VALUES (?, ?);");
+    query = a_cstr2s("INSERT INTO user(email, password) VALUES (?, ?);");
     table = a_decodeForm(body);
     email = a_htGet(table, a_cstr2s("email"));
     password = a_htGet(table, a_cstr2s("password"));
@@ -144,6 +191,32 @@ response signup(request req, a_string body)
         send(res);
         return NULL;        
     }
+
+    /* build session insert query */
+    id = sqlite3_last_insert_rowid(db);
+    query2 = newSessionQuery(id, &error2);
+    if (!query2) {
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Error creating session: ");
+        a_sbldadds(res->body, error2);
+        send(res);
+        return NULL;
+    }
+
+    /* create the session row */
+    rc = sqlite3_exec(db, query2->data, NULL, NULL, &error3);
+    if (rc) {
+        sqlite3_close(db);
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Error creating session: ");
+        a_sbldaddcstr(res->body, error3);
+        a_sbldaddcstr(res->body, "\n");
+        a_sbldadds(res->body, query2);
+        sqlite3_free(error3);
+        send(res);
+        return NULL;
+    }
+
     sqlite3_close(db);
 
 
@@ -170,7 +243,28 @@ response handleRequest(request req, a_string body)
     return NULL;
 }
 
- 
+FILE *g_logfp;
+
+/*
+    message printed to log file
+    message is freed
+*/
+void logError(a_string message)
+{
+    fprintf(g_logfp, message->data);
+    a_sdestroy(message);
+}
+
+/*
+    error
+        can't open log file
+        or can't get random seed
+        exit
+
+    success
+        open log file
+        set random seed
+*/
 
 int main()
 {

@@ -1,4 +1,4 @@
 BEGIN TRANSACTION;
-create table user (email text, password text);
-INSERT INTO user VALUES('miguel@here','abc');
+CREATE TABLE user (id INTEGER PRIMARY KEY, email TEXT, password TEXT);
+CREATE TABLE session (id TEXT PRIMARY KEY, userID INTEGER, expire DATETIME);
 COMMIT;
