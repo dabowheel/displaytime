@@ -54,7 +54,7 @@
       clickSettings() {
         this.menuExpanded = !this.menuExpanded
         this.$router.push('settings')
-      }
+      },
       clickLogout() {
         this.menuExpanded = !this.menuExpanded
         this.$router.push('logout')
