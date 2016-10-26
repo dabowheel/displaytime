@@ -6,8 +6,8 @@
       <span v-if="$route.path == '/login'" class="header">Login</span>
     </div>
     <div class="toolbar-links">
-      <a href="#" v-on:click.prevent="clickMenu" class="btn toolbar-link menu-link" title="menu"><i class="fa fa-ellipsis-v fa-2x menu-icon" aria-hidden="true"></i></a>
       <router-link v-if="$route.path != '/'" to="/" class="btn toolbar-link icon-link" title="close settings"><i class="fa fa-times fa-2x" aria-hidden="true"></i></router-link>
+      <a href="#" v-on:click.prevent="clickMenu" class="btn toolbar-link menu-link" title="menu"><i class="fa fa-ellipsis-v fa-2x menu-icon" aria-hidden="true"></i></a>
     </div>
     <div class="toolbar-links">
       <router-link v-if="!$store.state.sessionID && $route.path == '/'" to="/signup" class="btn toolbar-link click-link" title="sign up">Sign up</router-link>
@@ -34,7 +34,7 @@
   .toolbar {
     margin-top: .5em;
     margin-left: 1em;
-    margin-right: 1em;
+    margin-right: .5em;
   }
   .toolbar-headers {
     float: left;
@@ -50,11 +50,7 @@
   .toolbar-link:link, .toolbar-link:visited, toolbar-link:hover, toolbar-link:active {
     text-decoration: none;
   }
-  .click-link:hover, .click-link:active {
-    text-decoration: underline;
-  }
-  .toolbar-link:hover, .toolbar-link:active {
-    color: green;
+  .click-link:hover {
   }
   .toolbar-link {
     color: purple;
@@ -67,7 +63,6 @@
     margin-left: .5em;
   }
   .menu-link {
-    margin-right: -.5em;
   }
   .menu-icon {
     padding-left: .5em;
