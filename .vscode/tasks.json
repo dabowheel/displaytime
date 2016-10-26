@@ -5,5 +5,14 @@
 	"command": "make",
 	"isShellCommand": true,
 	"args": [],
-	"showOutput": "always"
+	"showOutput": "always",
+	"tasks": [
+		{
+			"taskName": "build"
+		},
+		{
+			"taskName": "deploy",
+			"args": ["deploy"]
+		}
+	]
 }

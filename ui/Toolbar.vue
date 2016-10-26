@@ -1,75 +1,87 @@
 <template>
-  <div id="toolbar" class="toolbar">
-    <div class="toolbar-headers">
-      <span v-if="$route.path == '/settings'" class="header">Settings</span>
-      <span v-if="$route.path == '/signup'" class="header">Sign up</span>
-      <span v-if="$route.path == '/login'" class="header">Login</span>
+  <div>
+    <div v-bind:class="{ 'drop-menu-expanded': menuExpanded }" class="drop-menu">
+      <div v-show="!menuExpanded" class="drop-menu-header">
+        <a href="#" v-on:click.prevent="clickMenu" class="" title="menu"><i class="fa fa-ellipsis-v fa-2x drop-menu-icon" aria-hidden="true"></i></a>
+      </div>
+      <div v-show="menuExpanded" class="drop-menu-header">
+        <a href="#" v-on:click.prevent="clickMenu" class="" title="close"><i class="fa fa-times fa-2x drop-menu-icon" aria-hidden="true"></i></a>
+      </div>
+      <div v-show="menuExpanded" class="drop-menu-item">
+        <a v-on:click.prevent="clickHome" href="/" class="" title="home">Home</a>
+      </div>
+      <div v-show="menuExpanded" class="drop-menu-item">
+        <a v-on:click.prevent="clickSignup" href="/signup" class="" title="sign up">Sign up</a>
+      </div>
+      <div v-show="menuExpanded" class="drop-menu-item">
+        <a v-on:click.prevent="clickLogin" href="/login" class="" title="login">Login</a>
+      </div>
+      <div v-show="menuExpanded" class="drop-menu-item">
+        <a v-on:click.prevent="clickLogout" href="/logout" class="" title="logout">Logout</a>
+      </div>
     </div>
-    <div class="toolbar-links">
-      <router-link v-if="$route.path != '/'" to="/" class="btn toolbar-link icon-link" title="close settings"><i class="fa fa-times fa-2x" aria-hidden="true"></i></router-link>
-      <a href="#" v-on:click.prevent="clickMenu" class="btn toolbar-link menu-link" title="menu"><i class="fa fa-ellipsis-v fa-2x menu-icon" aria-hidden="true"></i></a>
-    </div>
-    <div class="toolbar-links">
-      <router-link v-if="!$store.state.sessionID && $route.path == '/'" to="/signup" class="btn toolbar-link click-link" title="sign up">Sign up</router-link>
-      <router-link v-if="!$store.state.sessionID && $route.path == '/'" to="/login" class="btn toolbar-link click-link" title="login">Login</router-link>
-    </div>
-    <div class="toolbar-separator"></div>
+
+    <div class="seperator"></div>
   </div>
 </template>
 
 <script>
   export default {
+    data() {
+      return {
+        menuExpanded: false
+      }
+    },
     methods: {
       clickMenu() {
-        console.log("click menu");
+        this.menuExpanded = !this.menuExpanded
+      },
+      clickHome() {
+        this.menuExpanded = !this.menuExpanded
+        this.$router.push('/')
+      },
+      clickSignup() {
+        this.menuExpanded = !this.menuExpanded
+        this.$router.push('signup')
+      },
+      clickLogin() {
+        this.menuExpanded = !this.menuExpanded
+        this.$router.push('login')
+      },
+      clickLogout() {
+        this.menuExpanded = !this.menuExpanded
+        this.$router.push('logout')
       }
     }
   }
 </script>
 
-<style>
-  /*
-    mobile
-  */
-  .toolbar {
-    margin-top: .5em;
-    margin-left: 1em;
-    margin-right: .5em;
+<style scoped>
+  .drop-menu {
+    position: absolute;
+    right: 0px;
+    width: 100px;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
   }
-  .toolbar-headers {
-    float: left;
+  .drop-menu-expanded {
+    background-color: lightgray;
   }
-  .toolbar-links {
-    float: right;
+  .drop-menu-header {
+    text-align: right;
+    padding-bottom: 1em;
   }
-  .toolbar-separator {
-    clear: both;
+  .drop-menu-icon {
+    width: 1em;
+    text-align: center;
+  }
+  .drop-menu-item {
+    text-align: center;
+    padding-bottom: 1em;
+  }
+  .seperator {
+    height: 4em;
     width: 100%;
-    height: 1em;
-  }
-  .toolbar-link:link, .toolbar-link:visited, toolbar-link:hover, toolbar-link:active {
-    text-decoration: none;
-  }
-  .click-link:hover {
-  }
-  .toolbar-link {
-    color: purple;
-  }
-  .click-link {
-    line-height: 2em;
-    margin-left: .5em;
-  }
-  .icon-link {
-    margin-left: .5em;
-  }
-  .menu-link {
-  }
-  .menu-icon {
-    padding-left: .5em;
-    padding-right: .5em;
-  }
-  .header {
-    line-height: 1.3em;
-    font-size: 1.5em;
   }
 </style>
