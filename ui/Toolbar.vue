@@ -7,19 +7,19 @@
       <div v-show="menuExpanded" class="drop-menu-header">
         <a href="#" v-on:click.prevent="clickMenu" class="" title="close"><i class="fa fa-times fa-2x drop-menu-icon" aria-hidden="true"></i></a>
       </div>
-      <div v-show="menuExpanded" class="drop-menu-item">
+      <div v-if="menuExpanded && $route.path != '/'" class="drop-menu-item">
         <a v-on:click.prevent="clickHome" href="/" class="" title="home">Home</a>
       </div>
-      <div v-show="menuExpanded" class="drop-menu-item">
+      <div v-show="menuExpanded && $route.path != '/signup'" class="drop-menu-item">
         <a v-on:click.prevent="clickSignup" href="/signup" class="" title="sign up">Sign up</a>
       </div>
-      <div v-show="menuExpanded" class="drop-menu-item">
+      <div v-show="menuExpanded && $route.path != '/login'" class="drop-menu-item">
         <a v-on:click.prevent="clickLogin" href="/login" class="" title="login">Login</a>
       </div>
-      <div v-show="menuExpanded" class="drop-menu-item">
+      <div v-show="menuExpanded && $route.path != '/settings'" class="drop-menu-item">
         <a v-on:click.prevent="clickSettings" href="/settings" class="" title="settings">Settings</a>
       </div>
-      <div v-show="menuExpanded" class="drop-menu-item">
+      <div v-show="menuExpanded && $route.path != '/logout'" class="drop-menu-item">
         <a v-on:click.prevent="clickLogout" href="/logout" class="" title="logout">Logout</a>
       </div>
     </div>
