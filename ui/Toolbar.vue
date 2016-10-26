@@ -17,6 +17,9 @@
         <a v-on:click.prevent="clickLogin" href="/login" class="" title="login">Login</a>
       </div>
       <div v-show="menuExpanded" class="drop-menu-item">
+        <a v-on:click.prevent="clickSettings" href="/settings" class="" title="settings">Settings</a>
+      </div>
+      <div v-show="menuExpanded" class="drop-menu-item">
         <a v-on:click.prevent="clickLogout" href="/logout" class="" title="logout">Logout</a>
       </div>
     </div>
@@ -48,6 +51,10 @@
         this.menuExpanded = !this.menuExpanded
         this.$router.push('login')
       },
+      clickSettings() {
+        this.menuExpanded = !this.menuExpanded
+        this.$router.push('settings')
+      }
       clickLogout() {
         this.menuExpanded = !this.menuExpanded
         this.$router.push('logout')
