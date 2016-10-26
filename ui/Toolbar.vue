@@ -57,7 +57,7 @@
     color: black;
   }
   .toolbar-link {
-    color: #444444;
+    color: #5f5f5f;
   }
   .click-link {
     line-height: 2em;
@@ -67,7 +67,7 @@
     margin-left: .75em;
   }
   .menu-link {
-    margin-right: -1em;
+    margin-right: -.5em;
   }
   .menu-icon {
     padding-left: .5em;
