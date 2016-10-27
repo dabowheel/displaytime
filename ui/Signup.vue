@@ -105,15 +105,15 @@
             }
 
             var obj = decodeForm(body);
-            if (!obj.sessionID) {
-              console.error("sessionID not returned on signup");
+            if (!obj.sessionID || !obj.sessionExpire) {
+              console.error("session ID or expire not returned on signup");
               this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")
               this.$router.push('error')
               return;
             }
 
-            sessionStorage.sessionID = obj.sessionID;
             this.$store.commit('setSessionID', obj.sessionID);
+            this.$store.commit('setSessionExpire', obj.sessionExpire);
             this.$router.push('/')
           }.bind(this))
         }

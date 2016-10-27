@@ -42,6 +42,8 @@ const router = new VueRouter({
 const datetime = moment()
 const datetimeFormat = localStorage.datetimeFormat ? localStorage.datetimeFormat : 'lll'
 const datetimeString = datetime.format(datetimeFormat)
+const sessionID = sessionStorage.sessionID
+const sessionExpire = sessionStorage.sessionExpire
 
 const store = new Vuex.Store({
   state: {
@@ -49,7 +51,8 @@ const store = new Vuex.Store({
     datetimeFormat: datetimeFormat,
     datetimeString: datetimeString,
     lastError: '',
-    sessionID: ''
+    sessionID: sessionID,
+    sessionExpire: sessionExpire
   },
   mutations: {
     updateDatetime(state) {
@@ -62,10 +65,15 @@ const store = new Vuex.Store({
       localStorage.datetimeFormat = newFormat
     },
     setLastError(state, error) {
-      state.lastError = error;
+      state.lastError = error
     },
     setSessionID(state, id) {
       state.sessionID = id;
+      sessionStorage.sessionID = id
+    },
+    setSessionExpire(state, expire) {
+      state.sessionExpire = expire
+      sessionStorage.sessionExpire = expire
     }
   }
 })
