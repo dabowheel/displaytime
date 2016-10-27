@@ -61,8 +61,9 @@
         this.$router.push('settings')
       },
       clickLogout() {
+        this.$store.commit('setSessionID', '')
+        this.$store.commit('setSessionExpire', '')
         this.menuExpanded = !this.menuExpanded
-        this.$router.push('logout')
       }
     }
   }
