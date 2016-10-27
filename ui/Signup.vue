@@ -30,7 +30,7 @@
 </template>
 
 <script>
-  import {packSignup, api, decodeForm} from './com'
+  import {api, decodeForm, packSignup} from './com'
 
   export default {
     data () {
@@ -92,11 +92,7 @@
         this.validateConfirmPassword = true
 
         if (this.valid) {
-          var body = packSignup({
-            email: this.email,
-            password: this.password
-          })
-
+          var body = packSignup(this.email, this.password)
           api('POST', 'signup', body, function (status, body) {
             if (status !== 200) {
               this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")

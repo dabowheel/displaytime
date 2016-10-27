@@ -23,6 +23,7 @@
 </template>
 
 <script>
+  import {api, decodeForm, packSignup, packLogin} from './com'
   export default {
     data () {
       return {
@@ -63,6 +64,18 @@
       clickLogin() {
         this.validateEmail = true
         this.validatePassword = true
+        if (this.valid) {
+          var body = packLogin(this.email, this.password)
+          api('POST', 'login', body, function (status, body) {
+            if (status !=200) {
+              this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")
+              this.$router.push('error')
+              return;
+            }
+
+            
+          })
+        }
       }
     }
   }

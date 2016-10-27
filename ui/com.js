@@ -2,11 +2,15 @@
   email,
   password,
 */
-function packSignup(obj) {
+function packSignup(email, password) {
   var ret = '';
-  ret = 'email=' + encodeURIComponent(obj.email)
-  ret += '&password=' + encodeURIComponent(obj.password)
+  ret = 'email=' + encodeURIComponent(email)
+  ret += '&password=' + encodeURIComponent(password)
   return ret
+}
+
+function packLogin(email, password) {
+  return packSignup(email, password);
 }
 
 function  api (method, path, body, callback) {
@@ -42,4 +46,4 @@ function decodeForm(str)
   return obj
 }
 
-export { packSignup, api, decodeForm}
+export { api, decodeForm, packSignup, packLogin}

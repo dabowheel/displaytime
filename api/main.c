@@ -241,12 +241,153 @@ void handle404(request req)
    send(res);
 }
 
+/*
+    GetLoginQuery (PRIVATE)
+    DESCRIPTION: Get a query string for checking login credentials
+    INPUT:
+        body - body of request
+    OUTPUT:
+        GetLoginQuery - the query string or NULL if error
+        *errorptr - unset or the error string if error
+    MEMORY:
+        GetLoginQuery: +GetLoginQuery 
+        !GetLoginQuery: +*errorptr
+*/
+a_string GetLoginQuery(a_string body, a_string *errorptr)
+{
+    a_string queryFormat;
+    a_string query;
+    a_string emailKey;
+    a_string passwordKey;
+    a_string email;
+    a_string password;
+    a_hash_table table;
+
+    /* +table, email|table, password|table */
+    emailKey = a_cstr2s("email");
+    passwordKey = a_cstr2s("password");
+    table = a_decodeForm(body);
+    email = a_htGet(table, emailKey);
+    password = a_htGet(table, passwordKey);
+    a_sdestroy(emailKey);
+    a_sdestroy(passwordKey);
+
+    /* query: +query */
+    /* !query: +*errorptr */
+    /* -table, email|table, password|table */
+    queryFormat = a_cstr2s("SELECT userID FROM users WHERE email = ? AND password = ?;");
+    query = a_sqlformat(queryFormat, errorptr, email, password);
+    a_sdestroy(queryFormat);
+    a_htDestroy(table);
+
+    /* !query: -*errorptr */
+    if (!query) {
+        return NULL;
+    }
+
+    /* query: -query */
+    return query;
+}
+
+/*
+    handleLogin (PRIVATE)
+    handle login request
+    INPUT:
+        req - the request
+        body - the request body
+    OUTPUT:
+        stdout - write response
+*/
+void handleLogin(request req, a_string body)
+{
+    a_string query;
+    a_string error;
+    const char *dberror;
+    char *dberror2;
+    response res;
+    sqlite3 *db;
+    int rc, rc2;
+    a_string statusText;
+    a_string contentType;
+    sqlite3_uint64 id;
+
+    /* query: +query */
+    /* !query: +error */
+    query = GetLoginQuery(body, &error);
+
+    /* !query: -error */
+    if (!query) {
+        statusText = a_cstr2s("Application Error");
+        contentType = a_cstr2s("text/plain");
+        res = createResponse(500, statusText, contentType);
+        a_sdestroy(statusText);
+        a_sdestroy(contentType);
+        a_sbldaddcstr(res->body, "Error building login query: ");
+        a_sbldadds(res->body, error);
+        a_sdestroy(error);
+        send(res);
+        destroyResponse(res);
+        return;
+    }
+
+    /* query: rc: -query */
+    rc = sqlite3_open("displaytime.db", &db);
+    if (rc) {
+        dberror = sqlite3_errmsg(db);
+        sqlite3_close(db);
+        statusText = a_cstr2s("Application Error");
+        contentType = a_cstr2s("text/plain");
+        res = createResponse(500, statusText, contentType);
+        a_sdestroy(statusText);
+        a_sdestroy(contentType);
+        a_sbldaddcstr(res->body, "Error opening database: ");
+        a_sbldaddcstr(res->body, dberror);
+        send(res);
+        destroyResponse(res);
+        a_sdestroy(query);
+        return;
+    }
+
+    /* query: !rc: -query */
+    rc2 = sqlite3_exec(db, query->data, NULL, NULL, &dberror2);
+    a_sdestroy(query);
+    if (rc2) {
+        sqlite3_close(db);
+        statusText = a_cstr2s("Application Error");
+        contentType = a_cstr2s("text/plain");
+        res = createResponse(500, statusText, contentType);
+        a_sdestroy(statusText);
+        a_sdestroy(contentType);
+        a_sbldaddcstr(res->body, "Error executing database statement: ");
+        a_sbldaddcstr(res->body, dberror2);
+        sqlite3_free(dberror2);
+        send(res);
+        destroyResponse(res);
+        return;
+    }
+
+    id = sqlite3_last_insert_rowid(db);
+    sqlite3_close(db);
+    statusText = a_cstr2s("OK");
+    contentType = a_cstr2s("application/x-wwww-form-urlencoded");
+    res = createResponse(500, statusText, contentType);
+    a_sdestroy(statusText);
+    a_sdestroy(contentType);
+    a_sbldaddcstr(res->body, id ? "success=true": "success=");
+    send(res);
+    destroyResponse(res);
+}
+
 response handleRequest(request req, a_string body)
 {
     char *path = req->request_uri->data;
     if (strcmp(path, "/api/signup.cgi") == 0) {
         return signup(req, body);
+    } else if (strcmp(path, "/api/login.cgi") == 0) {
+        handleLogin(req, body);
+        return NULL;
     }
+    
     handle404(req);
     return NULL;
 }
