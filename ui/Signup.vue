@@ -100,6 +100,7 @@
               return;
             }
 
+            console.log(body);
             var obj = decodeForm(body);
             if (!obj.sessionID || !obj.sessionExpire) {
               console.error("session ID or expire not returned on signup");

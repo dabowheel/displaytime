@@ -1,6 +1,7 @@
 CFLAGS = -Wall -O3 -g
 LDFLAGS = -lfcgi -laqua -lsqlite3 -lrandomid -lgmp -lcrypto
 LDPATH = -L/usr/local/lib
+object_files = main.o route.o com.o auth.o util.o
 
 all: public/build.js api
 
@@ -8,12 +9,15 @@ public/build.js: ui/*
 	webpack
 
 api: build app
+
 build:
 	mkdir -p build
+
 app:
 	make -C build -f ../Makefile displaytime
-displaytime: main.o
-	gcc -o displaytime main.o $(LDPATH) $(LDFLAGS)
+
+displaytime: $(object_files)
+	gcc -o displaytime $(object_files) $(LDPATH) $(LDFLAGS)
 
 %.o: ../api/%.c
 	gcc -c $< $(CFLAGS)

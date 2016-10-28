@@ -1,0 +1,406 @@
+#include <aqua/aqua.h>
+#include <sqlite3.h>
+#include <randomid.h>
+#include <sys/time.h>
+#include "com.h"
+#include "util.h"
+
+/*
+    newSessionQuery (PRIVATE)
+    DESCRIPTION: create a query to create a new session
+    INPUT:
+        id - the user ID
+    OUTPUT:
+        *sessionIDptr - session ID
+        *expireptr - expiration datetime
+        *errorptr - error if there is an error
+        newSessionQuery - query or NULL if error
+    MEMORY:
+        newSessionQuery: + *sessionIDptr, *expireptr, newSessionQuery
+        !newSessionQuery: + *errorptr
+*/
+a_string newSessionQuery(sqlite3_int64 id, a_string *sessionIDptr, a_string *expireptr, a_string *errorptr)
+{
+    a_string query;
+    a_string query2;
+    struct timeval t;
+    int ret;
+    a_string sessionID;
+    a_string userID;
+    a_string expire;
+    a_string error;
+    charmap map;
+
+    /* sessionID: + sessionID */
+    /* !sessionID: + *errorptr AND newSessionQuery GETS NULL AND END */
+    map = Create62CharMap();
+    sessionID = randomID(30, map, &error);
+    cmDestroy(map);
+    if (!sessionID) {
+        *errorptr = error;
+        return NULL;
+    }
+
+    /* + userID */
+    userID = a_itoa(id);
+
+    /* ret: + expire */
+    /* !ret: + *errorptr AND getSessionQuery GETS NULL AND END */
+    ret = gettimeofday(&t, NULL);
+    if (ret) {
+        *errorptr = a_cstr2s("Could not get time of day.");
+        return NULL;
+    }
+    t.tv_sec += 60 * 60 * 24 * 7;       /* 60 s/m * 60 m/h * 24 h/d * 7 = seconds/day * 7 */
+    expire = a_GetISOTime(&t);
+
+    /* - userID */
+    /* query2: + query2 */
+    /* !query2: + errorptr AND getSessionQuery GETS NULL AND END */
+    query = a_cstr2s("INSERT INTO session(id, userID, expire) VALUES (?, ?, ?);");
+    query2 = a_sqlformat(query, &error, sessionID, userID, expire);
+    a_sdestroy(query);
+    a_sdestroy(userID);
+    if (!query2) {
+        *errorptr = error;
+        return NULL;
+    }
+
+    /* sessionID | *sessionIDptr */
+    /* expire | *expireptr */
+    /* query2 | newSessionQuery */
+    *sessionIDptr = sessionID;
+    *expireptr = expire;
+    return query2;
+}
+
+/*
+    signup (PUBLIC)
+    DESCRIPTION: handle signup request
+    INPUT:
+        req - request info
+        body - request body
+    OUTPUT:
+        signup - response
+    MEMORY:
+        + signup
+*/
+response signup(request req, a_string body)
+{
+
+    response res;
+    a_hash_table table;
+    a_string email;
+    a_string password;
+    a_string query;
+    a_string query2;
+    a_string error2;
+    sqlite3 *db;
+    int rc;
+    const char *error;
+    char *error3;
+    sqlite3_int64 id;
+    a_string sessionID;
+    a_string expire;
+
+    /* query2: + query2, table[email, password] */
+    /* !query2: + signup AND END*/
+    query = a_cstr2s("INSERT INTO user(email, password) VALUES (?, ?);");
+    table = a_decodeForm(body);
+    email = a_htGet(table, a_cstr2s("email"));
+    password = a_htGet(table, a_cstr2s("password"));
+    query2 = a_sqlformat(query, &error2, email, password);
+    a_sdestroy(query);
+    if (!query2) {
+        a_htDestroy(table);
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Internal Error: ");
+        a_sbldadds(res->body, error2);
+        return res;
+    }
+
+    /* !rc: +signup AND END */
+    rc = sqlite3_open("displaytime.db", &db);
+    if (rc) {
+        error = sqlite3_errmsg(db);
+        sqlite3_close(db);
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Error opening database: ");
+        a_sbldaddcstr(res->body, error);
+        return res;
+    }
+
+    /* !rc: +signup AND END */
+    rc = sqlite3_exec(db, query2->data, NULL, NULL, &error3);
+    if (rc) {
+        sqlite3_close(db);
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Error executing database statement: ");
+        a_sbldaddcstr(res->body, error3);
+        sqlite3_free(error3);
+        return res;
+    }
+
+    /* query2: +query2, sessionID, expire */
+    /* !query2: +error2 */
+    id = sqlite3_last_insert_rowid(db);
+    query2 = newSessionQuery(id, &sessionID, &expire, &error2);
+    if (!query2) {
+        /* + res */
+        /* - error2 */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Error creating session: ");
+        a_sbldadds(res->body, error2);
+        a_sdestroy(error2);
+
+        /* res | signup */
+        return res;
+    }
+
+    /* rc: + error3 */
+    rc = sqlite3_exec(db, query2->data, NULL, NULL, &error3);
+    if (rc) {
+        sqlite3_close(db);
+        /* + res */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Error creating session: ");
+        a_sbldaddcstr(res->body, error3);
+        a_sbldaddcstr(res->body, "\n");
+        a_sbldadds(res->body, query2);
+        /* - error3 */
+        sqlite3_free(error3);
+        /* res | signup */
+        return res;
+    }
+
+    sqlite3_close(db);
+
+    /* (+ res) */
+    res = createResponse(200, a_cstr2s("OK"), a_cstr2s("application/x-www-form-urlencoded"));
+    a_sbldaddcstr(res->body, "sessionID=");
+    a_sbldaddcstr(res->body, sessionID->data);
+    a_sbldaddcstr(res->body, "&sessionExpire=");
+    a_sbldaddcstr(res->body, expire->data);
+
+    /* (- sessionID, expire) */
+    a_sdestroy(sessionID);
+    a_sdestroy(expire);
+
+    /* (| res, signup) */
+    return res;
+}
+
+/*
+    GetLoginQuery (PRIVATE)
+    DESCRIPTION: Get a query string for checking login credentials
+    INPUT:
+        body - body of request
+    OUTPUT:
+        GetLoginQuery - the query string or NULL if error
+        *errorptr - unset or the error string if error
+    MEMORY:
+        GetLoginQuery: +GetLoginQuery 
+        !GetLoginQuery: +*errorptr
+*/
+a_string GetLoginQuery(a_string body, a_string *errorptr)
+{
+    a_string queryFormat;
+    a_string query;
+    a_string emailKey;
+    a_string passwordKey;
+    a_string email;
+    a_string password;
+    a_hash_table table;
+
+    /* +table, email|table, password|table */
+    emailKey = a_cstr2s("email");
+    passwordKey = a_cstr2s("password");
+    table = a_decodeForm(body);
+    email = a_htGet(table, emailKey);
+    password = a_htGet(table, passwordKey);
+    a_sdestroy(emailKey);
+    a_sdestroy(passwordKey);
+
+    /* query: +query */
+    /* !query: +*errorptr */
+    /* -table, email|table, password|table */
+    queryFormat = a_cstr2s("SELECT userID FROM users WHERE email = ? AND password = ?;");
+    query = a_sqlformat(queryFormat, errorptr, email, password);
+    a_sdestroy(queryFormat);
+    a_htDestroy(table);
+
+    /* !query: -*errorptr */
+    if (!query) {
+        return NULL;
+    }
+
+    /* query: -query */
+    return query;
+}
+
+/*
+    handleLogin (PRIVATE)
+    handle login request
+    INPUT:
+        req - the request
+        body - the request body
+    OUTPUT:
+        handleLogin - response
+    MEMORY:
+        (+ handleLogin)
+*/
+response handleLogin(request req, a_string body)
+{
+    a_string query;
+    a_string error;
+    const char *dberror;
+    char *dberror2;
+    response res;
+    sqlite3 *db;
+    int rc;
+    sqlite3_stmt *stmt;
+    int done;
+    sqlite3_int64 id;
+    int row_returned;
+    a_string sessionID;
+    a_string expire;
+
+    /* (if query (+ query)) */
+    /* (if (not query) (+ error)) */
+    query = GetLoginQuery(body, &error);
+
+    /* (if (not query) (- error) (+ handleLogin) (return)) */
+    if (!query) {
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+        a_sbldaddcstr(res->body, "Error building login query: ");
+        a_sbldadds(res->body, error);
+        /* (- error) */
+        a_sdestroy(error);
+        /* (| res handleLogin) */
+        return res;
+    }
+
+    rc = sqlite3_open("displaytime.db", &db);
+
+    /* (if rc (-query) (+ handleLogin) (return)) */
+    if (rc) {
+        dberror = sqlite3_errmsg(db);
+        sqlite3_close(db);
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+        a_sbldaddcstr(res->body, "Error opening database: ");
+        a_sbldaddcstr(res->body, dberror);
+        /* (- query) */
+        a_sdestroy(query);
+        /* (| res handleLogin) */
+        return res;
+    }
+
+    /* (if (not rc) (+stmt)) */
+    rc = sqlite3_prepare(db, query->data, query->len + 1, &stmt, NULL);
+    
+    /* (if rc (+ handleLogin) (return)) */
+    if (rc) {
+        sqlite3_close(db);
+        dberror = sqlite3_errmsg(db);
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+        a_sbldaddcstr(res->body, "Error preparing SQL statement: ");
+        a_sbldaddcstr(res->body, dberror);
+        /* (| res handleLogin) */
+        return res;
+    }
+
+    /* (- query) */
+    a_sdestroy(query);
+
+    done = 0;
+    row_returned = 0;
+    while (!done) {
+        rc = sqlite3_step(stmt);
+        switch (rc) {
+            case SQLITE_BUSY:
+                break;
+            case SQLITE_ROW:
+                id = sqlite3_column_int64(stmt, 0);
+                row_returned = 1;
+                done = 1;
+                break;
+            case SQLITE_DONE:
+                done = 1;
+                break;
+            case SQLITE_ERROR:
+            case SQLITE_MISUSE:
+            default:
+                dberror = sqlite3_errmsg(db);
+                /* (- stmt) */
+                sqlite3_finalize(stmt);
+                sqlite3_close(db);
+                /* (+ res) */
+                res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plan"));
+                a_sbldaddcstr(res->body, dberror);
+                /* (| res handleLogin) (return)*/
+                return res;
+        }
+    }
+
+    /* (- stmt) */
+    sqlite3_finalize(stmt);
+
+    /* (if (not row_returned) (+ handleLogin) (return)) */
+    if (!row_returned) {
+        sqlite3_close(db);
+        /* (+ res) */
+        res = createResponse(200, a_cstr2s("OK"), a_cstr2s("application/x-wwww-form-urlencoded"));
+        a_sbldaddcstr(res->body, "success=");
+        /* (| res handleLogin) */
+        return res;
+    }
+
+    query = newSessionQuery(id, &sessionID, &expire, &error);
+
+    if (!query) {
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+        a_sbldadds(res->body, error);
+        a_sdestroy(error);
+        return res;
+    }
+
+    rc = sqlite3_exec(db, query->data, NULL, NULL, &dberror2);
+
+    /* (if rc (+ handleLogin) (return)) */
+    if (rc) {
+        sqlite3_close(db);
+        dberror = sqlite3_errmsg(db);
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+        a_sbldaddcstr(res->body, "Error preparing SQL statement: ");
+        a_sbldaddcstr(res->body, dberror2);
+        sqlite3_free(dberror2);
+        /* (| res handleLogin) */
+        return res;
+    }
+
+    
+    /* (- query) */
+    a_sdestroy(query);
+
+    sqlite3_close(db);
+    
+    /* (+ res) */
+    res = createResponse(200, a_cstr2s("OK"), a_cstr2s("application/x-www-form-urlencoded"));
+    a_sbldaddcstr(res->body, "success=true&sessionID=");
+    a_sbldaddcstr(res->body, sessionID->data);
+    a_sbldaddcstr(res->body, "&sessionExpire=");
+    a_sbldaddcstr(res->body, expire->data);
+    
+    writeLog(expire->data);
+
+    /* (- sessionID expire) */
+    a_sdestroy(sessionID);
+    a_sdestroy(expire);
+
+    /* (| res handleLogin) */
+    return res;
+}
