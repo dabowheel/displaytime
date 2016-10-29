@@ -224,7 +224,7 @@ a_string GetLoginQuery(a_string body, a_string *errorptr)
     /* query: +query */
     /* !query: +*errorptr */
     /* -table, email|table, password|table */
-    queryFormat = a_cstr2s("SELECT userID FROM users WHERE email = ? AND password = ?;");
+    queryFormat = a_cstr2s("SELECT id FROM user WHERE email = ? AND password = ?;");
     query = a_sqlformat(queryFormat, errorptr, email, password);
     a_sdestroy(queryFormat);
     a_htDestroy(table);
@@ -264,6 +264,7 @@ response handleLogin(request req, a_string body)
     int row_returned;
     a_string sessionID;
     a_string expire;
+    a_string rc_num;
 
     /* (if query (+ query)) */
     /* (if (not query) (+ error)) */
@@ -284,12 +285,16 @@ response handleLogin(request req, a_string body)
     rc = sqlite3_open("displaytime.db", &db);
 
     /* (if rc (-query) (+ handleLogin) (return)) */
-    if (rc) {
+    if (rc != SQLITE_OK) {
         dberror = sqlite3_errmsg(db);
         sqlite3_close(db);
         /* (+ res) */
         res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
         a_sbldaddcstr(res->body, "Error opening database: ");
+        rc_num = a_itoa(rc);
+        a_sbldadds(res->body, rc_num);
+        a_sdestroy(rc_num);
+        a_sbldaddcstr(res->body, ": ");
         a_sbldaddcstr(res->body, dberror);
         /* (- query) */
         a_sdestroy(query);
@@ -302,12 +307,16 @@ response handleLogin(request req, a_string body)
     
     /* (if rc (+ handleLogin) (return)) */
     if (rc) {
-        sqlite3_close(db);
         dberror = sqlite3_errmsg(db);
         /* (+ res) */
         res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
         a_sbldaddcstr(res->body, "Error preparing SQL statement: ");
+        rc_num = a_itoa(rc);
+        a_sbldadds(res->body, rc_num);
+        a_sdestroy(rc_num);
+        a_sbldaddcstr(res->body, ": ");
         a_sbldaddcstr(res->body, dberror);
+        sqlite3_close(db);
         /* (| res handleLogin) */
         return res;
     }
@@ -339,6 +348,7 @@ response handleLogin(request req, a_string body)
                 sqlite3_close(db);
                 /* (+ res) */
                 res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plan"));
+                a_sbldaddcstr(res->body, "Error stepping though SQL statement: ");
                 a_sbldaddcstr(res->body, dberror);
                 /* (| res handleLogin) (return)*/
                 return res;
@@ -375,7 +385,7 @@ response handleLogin(request req, a_string body)
         dberror = sqlite3_errmsg(db);
         /* (+ res) */
         res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
-        a_sbldaddcstr(res->body, "Error preparing SQL statement: ");
+        a_sbldaddcstr(res->body, "Error executing SQL statement: ");
         a_sbldaddcstr(res->body, dberror2);
         sqlite3_free(dberror2);
         /* (| res handleLogin) */

@@ -16,7 +16,7 @@
         </div>
       </div>
       <div class="form-group">
-        <button v-bind:click.prevent='clickLogin' v-bind:disabled='!valid'>Login</button>
+        <button v-on:click.prevent='clickLogin' v-bind:disabled='!valid'>Login</button>
       </div>
     </div>
   </div>
@@ -62,19 +62,31 @@
     },
     methods: {
       clickLogin() {
+        console.log('click login')
         this.validateEmail = true
         this.validatePassword = true
         if (this.valid) {
           var body = packLogin(this.email, this.password)
           api('POST', 'login', body, function (status, body) {
-            if (status !=200) {
+            if (status != 200) {
               this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")
               this.$router.push('error')
-              return;
+              return
             }
 
-            
-          })
+            console.log(body)
+            var obj = decodeForm(body)
+            if (!obj.sessionID || !obj.sessionExpire) {
+              console.error("session ID or expire not returned on signup");
+              this.$store.commit('setLastError', 'There was an error during login. Please contact the administrator or try again later.')
+              this.$router.push('error')
+              return
+            }
+
+            this.$store.commit('setSessionID', obj.sessionID);
+            this.$store.commit('setSessionExpire', obj.sessionExpire);
+            this.$router.push('/')
+          }.bind(this))
         }
       }
     }

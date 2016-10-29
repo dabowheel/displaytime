@@ -17,3 +17,44 @@ Fri Oct 28 16:01:51 2016 sessionID=rEiTB2CwnmyVzD9N93EaaI95QgPIvKJuJOfPBide&sess
 Fri Oct 28 16:05:46 2016 sessionID=1f9uTqCK1qDFQJMP59tl0YZViBnkferRWehAQjWJC&sessionExpire=2016-11-04T22:05:46.257Z
 Fri Oct 28 16:16:45 2016 sessionID=2llXPRCA1RnPSy2itIsCbMgynck7vE4fStcoomcy4&sessionExpire=2016-11-04T22:16:45.912Z
 Fri Oct 28 17:15:37 2016 sessionID=32zTqTwdk0fELshyedH66X9lraYNpTxsS70VQN0Qn&sessionExpire=2016-11-04T23:15:37.816Z
+Fri Oct 28 22:08:55 2016 sessionID=UtD83SAWraKxdVSz2mplnb8k5RSMrS4fNyZIxcjR&sessionExpire=2016-11-05T04:08:55.348Z
+Fri Oct 28 22:11:06 2016 start app
+Fri Oct 28 22:11:16 2016 start app
+Fri Oct 28 22:12:42 2016 start app
+Fri Oct 28 22:14:45 2016 start app
+Fri Oct 28 22:14:56 2016 Error preparing SQL statement: library routine called out of sequence
+Fri Oct 28 22:17:57 2016 start app
+Fri Oct 28 22:18:03 2016 Error preparing SQL statement: library routine called out of sequence
+Fri Oct 28 22:18:08 2016 Error preparing SQL statement: library routine called out of sequence
+Fri Oct 28 22:28:22 2016 start app
+Fri Oct 28 22:28:28 2016 Error preparing SQL statement: library routine called out of sequence
+Fri Oct 28 22:31:41 2016 start app
+Fri Oct 28 22:32:24 2016 start app
+Fri Oct 28 22:32:30 2016 Error preparing SQL statement: library routine called out of sequence
+Fri Oct 28 22:36:36 2016 start app
+Fri Oct 28 22:36:42 2016 Error preparing SQL statement: library routine called out of sequence
+Fri Oct 28 22:48:08 2016 start app
+Fri Oct 28 22:48:15 2016 Error preparing SQL statement: library routine called out of sequence
+Fri Oct 28 22:49:43 2016 start app
+Fri Oct 28 22:49:48 2016 Error preparing SQL statement: 1: library routine called out of sequence
+Fri Oct 28 22:52:13 2016 start app
+Fri Oct 28 22:52:19 2016 Error preparing SQL statement: 1: library routine called out of sequence
+Fri Oct 28 23:09:18 2016 start app
+Fri Oct 28 23:09:24 2016 Error preparing SQL statement: 1: no such table: users
+Fri Oct 28 23:10:01 2016 start app
+Fri Oct 28 23:10:32 2016 Error preparing SQL statement: 1: no such column: userID
+Fri Oct 28 23:11:26 2016 start app
+Fri Oct 28 23:11:31 2016 2016-11-05T05:11:31.783Z
+Fri Oct 28 23:11:31 2016 success=true&sessionID=2ahU77prSWdztndDVG4FFj6sRwyBBZYpAcuplAS18&sessionExpire=2016-11-05T05:11:31.783Z
+Fri Oct 28 23:21:11 2016 2016-11-05T05:21:11.447Z
+Fri Oct 28 23:21:11 2016 success=true&sessionID=VJS6YrGFyEjKaXZKnFlk8tngpqiMu8DmNlBvvnOd&sessionExpire=2016-11-05T05:21:11.447Z
+Fri Oct 28 23:26:49 2016 2016-11-05T05:26:49.545Z
+Fri Oct 28 23:26:49 2016 success=true&sessionID=1yMpK0jBCakzupe119dSic0TvloT95I6hoHVDIZLp&sessionExpire=2016-11-05T05:26:49.545Z
+Fri Oct 28 23:47:37 2016 start app
+Fri Oct 28 23:47:44 2016 2016-11-05T05:47:44.297Z
+Fri Oct 28 23:47:44 2016 success=true&sessionID=2eSCtw3BbUNi7wzZ0EAHCpygumktOWS6saNcGWszf&sessionExpire=2016-11-05T05:47:44.297Z
+Fri Oct 28 23:48:54 2016 start app
+Fri Oct 28 23:49:11 2016 2016-11-05T05:49:11.127Z
+Fri Oct 28 23:49:11 2016 success=true&sessionID=TiIS1HwLZA67mkBrfod2D2wwsGdRcb1NkLXZGGLn&sessionExpire=2016-11-05T05:49:11.127Z
+Fri Oct 28 23:49:24 2016 2016-11-05T05:49:24.304Z
+Fri Oct 28 23:49:24 2016 success=true&sessionID=EcSZ1TIdbF8G6Msmm1T7iSFsSUCACEczgpZIVFR5&sessionExpire=2016-11-05T05:49:24.304Z
