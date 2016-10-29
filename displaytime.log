@@ -58,3 +58,19 @@ Fri Oct 28 23:49:11 2016 2016-11-05T05:49:11.127Z
 Fri Oct 28 23:49:11 2016 success=true&sessionID=TiIS1HwLZA67mkBrfod2D2wwsGdRcb1NkLXZGGLn&sessionExpire=2016-11-05T05:49:11.127Z
 Fri Oct 28 23:49:24 2016 2016-11-05T05:49:24.304Z
 Fri Oct 28 23:49:24 2016 success=true&sessionID=EcSZ1TIdbF8G6Msmm1T7iSFsSUCACEczgpZIVFR5&sessionExpire=2016-11-05T05:49:24.304Z
+Sat Oct 29 12:14:50 2016 sessionID=AYojKxwYaen7ZCOsNNCgC3o02MK4TYJyXuTQUCIx&sessionExpire=2016-11-05T18:14:50.672Z
+Sat Oct 29 12:17:33 2016 Error executing database statement: UNIQUE constraint failed: user.email
+Sat Oct 29 12:23:31 2016 2016-11-05T18:23:31.122Z
+Sat Oct 29 12:23:31 2016 success=true&sessionID=UrFpZ8ECe1qWBl4XPPG1T4AYOkpzhwWspa6GvKBO&sessionExpire=2016-11-05T18:23:31.122Z
+Sat Oct 29 12:38:33 2016 start app
+Sat Oct 29 15:19:52 2016 start app
+Sat Oct 29 15:20:41 2016 start app
+Sat Oct 29 16:31:13 2016 start app
+Sat Oct 29 16:48:10 2016 2016-11-05T22:48:10.680Z
+Sat Oct 29 16:48:10 2016 success=true&sessionID=3CkpeE3xfcIihRGqvkJzCnjuRUS93oZoglgR2Z5X&sessionExpire=2016-11-05T22:48:10.680Z
+Sat Oct 29 16:48:29 2016 emailExists=true
+Sat Oct 29 16:53:35 2016 start app
+Sat Oct 29 16:53:53 2016 emailExists=true
+Sat Oct 29 16:54:04 2016 emailExists=true
+Sat Oct 29 16:54:13 2016 2016-11-05T22:54:13.038Z
+Sat Oct 29 16:54:13 2016 success=true&sessionID=3fAyK8yTmr4fsUWwDtizrtwIGDhEKXPRjxPFdKkqV&sessionExpire=2016-11-05T22:54:13.038Z

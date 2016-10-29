@@ -102,6 +102,11 @@
 
             console.log(body);
             var obj = decodeForm(body);
+            if (obj.emailExists) {
+              alert('An account with this email address already exists.');
+              return;
+            }
+
             if (!obj.sessionID || !obj.sessionExpire) {
               console.error("session ID or expire not returned on signup");
               this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")

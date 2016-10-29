@@ -6,6 +6,75 @@
 #include "util.h"
 
 /*
+    CheckEmailQuery (PRIVATE)
+    DESCRIPTION: Check if email exists
+    INPUT:
+        email - email address
+    OUTPUT:
+        CheckEmailQuery - the query string or NULL if error
+        *errorptr - error string if error
+    MEMORY:
+        (if CheckEmailQuery (+ EmailQuery)) 
+        (if (not CheckEmailQuery) (+ *errorptr))
+*/
+a_string CheckEmailQuery(a_string email, a_string *errorptr)
+{
+    a_string queryFormat;
+    a_string query;
+
+    /* (if query (+ query)) */
+    /* (if (not query) (+ *errorptr)) */
+    queryFormat = a_cstr2s("SELECT id FROM user WHERE email = ?;");
+    query = a_sqlformat(queryFormat, errorptr, email);
+    a_sdestroy(queryFormat);
+
+    /* (if (not query) (| *errorptr *errorptr) (return)) */
+    if (!query) {
+        return NULL;
+    }
+
+    /* (if query (| query EmailQuery) (return)) */
+    return query;
+}
+
+/*
+    NewUserQuery (PRIVATE)
+    DESCRIPTION: Build query string for creating a new user
+    INPUT:
+        email - email address
+        password - password
+    OUTPUT:
+        NewUserQuery - query to create new user if no error
+        *errorptr - error if error
+    MEMORY:
+        (if NewUserQuery (+ NewUserQuery))
+        (if (not NewUserQuery) (+ *errorptr))
+*/
+a_string NewUserQuery(a_string email, a_string password, a_string *errorptr)
+{
+    a_string queryFormat;
+    a_string query;
+
+    /* (+ queryFormat) */
+    queryFormat = a_cstr2s("INSERT INTO user(email, password) VALUES (?, ?);");
+
+    /* (if query (+ query)) */
+    /* (if (not query) (+ *errorptr)) */
+    query = a_sqlformat(queryFormat, errorptr, email, password);
+
+    /* (- queryFormat) */
+    a_sdestroy(queryFormat);
+
+    /* (if (not query) (| *errorptr *errorptr) (return)) */    
+    if (!query) {
+        return NULL;
+    }
+
+    /* (| query NewUserQuery) (return) */
+    return query;
+}
+
+/*
     newSessionQuery (PRIVATE)
     DESCRIPTION: create a query to create a new session
     INPUT:
@@ -93,7 +162,6 @@ response signup(request req, a_string body)
     a_string email;
     a_string password;
     a_string query;
-    a_string query2;
     a_string error2;
     sqlite3 *db;
     int rc;
@@ -102,22 +170,14 @@ response signup(request req, a_string body)
     sqlite3_int64 id;
     a_string sessionID;
     a_string expire;
+    sqlite3_stmt *stmt;
+    int done;
+    int has_row;
 
-    /* query2: + query2, table[email, password] */
-    /* !query2: + signup AND END*/
-    query = a_cstr2s("INSERT INTO user(email, password) VALUES (?, ?);");
+    /* (+ table email|table password|table) */
     table = a_decodeForm(body);
     email = a_htGet(table, a_cstr2s("email"));
     password = a_htGet(table, a_cstr2s("password"));
-    query2 = a_sqlformat(query, &error2, email, password);
-    a_sdestroy(query);
-    if (!query2) {
-        a_htDestroy(table);
-        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
-        a_sbldaddcstr(res->body, "Internal Error: ");
-        a_sbldadds(res->body, error2);
-        return res;
-    }
 
     /* !rc: +signup AND END */
     rc = sqlite3_open("displaytime.db", &db);
@@ -130,46 +190,139 @@ response signup(request req, a_string body)
         return res;
     }
 
-    /* !rc: +signup AND END */
-    rc = sqlite3_exec(db, query2->data, NULL, NULL, &error3);
+    /* (+ query) */
+    query = CheckEmailQuery(email, &error2);
+    rc = sqlite3_prepare(db, query->data, query->len + 1, &stmt, NULL);
+
+    /* (- query) */
+    a_sdestroy(query);
+
+    /* (if rc (+signup) (return)) */
+    if (rc) {
+        error = sqlite3_errmsg(db);
+        sqlite3_close(db);
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
+        a_sbldaddcstr(res->body, "Error preparing query: ");
+        a_sbldaddcstr(res->body, error);
+        /* (| res signup) (return) */
+        return res;
+    }
+
+    done = 0;
+    has_row = 0;
+    while (!done) {
+        rc = sqlite3_step(stmt);
+        switch(rc) {
+            case SQLITE_BUSY:
+                break;
+            case SQLITE_DONE:
+                done = 1;
+                break;
+            case SQLITE_ROW:
+                has_row = 1;
+                done = 1;
+                break;
+            case SQLITE_ERROR:
+            case SQLITE_MISUSE:
+            default:
+                error = sqlite3_errmsg(db);
+                sqlite3_finalize(stmt);
+                sqlite3_close(db);
+                res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+                a_sbldaddcstr(res->body, "Error stepping through SQL results: ");
+                a_sbldaddcstr(res->body, error);
+                return res;
+                break;
+        }
+    }
+
+    sqlite3_finalize(stmt);
+
+    /* (if has_row (+ signup) (return)) */
+    if (has_row) {
+        sqlite3_close(db);
+        /* (+ res) */
+        res = createResponse(200, a_cstr2s("OK"), a_cstr2s("text/plain"));
+        a_sbldaddcstr(res->body, "emailExists=true");
+        /* (| res signup) (return) */
+        return res;
+    }
+
+    /* (if query (+ query)) */
+    /* (if (not query (+ error2)) */
+    query = NewUserQuery(email, password, &error2);
+    
+    /* (if (not query) (- error2) (+ signup) (return)) */
+    if (!query) {
+        sqlite3_close(db);
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plan"));
+        a_sbldadds(res->body, error2);
+        /* (- error2) */
+        a_sdestroy(error2);
+        /* (| res signup) */
+        return res;
+    }
+
+    /* (if rc (+ error3)) */
+    rc = sqlite3_exec(db, query->data, NULL, NULL, &error3);
+
+    /* (if rc (- error3) (+ signup) (return)) */
     if (rc) {
         sqlite3_close(db);
+        /* (+ res) */
         res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
         a_sbldaddcstr(res->body, "Error executing database statement: ");
         a_sbldaddcstr(res->body, error3);
+        /* (- error3) */
         sqlite3_free(error3);
+        /* (| res signup) (return) */
         return res;
     }
 
-    /* query2: +query2, sessionID, expire */
-    /* !query2: +error2 */
+    /* (- query) */
+    a_sdestroy(query);
+
     id = sqlite3_last_insert_rowid(db);
-    query2 = newSessionQuery(id, &sessionID, &expire, &error2);
-    if (!query2) {
-        /* + res */
-        /* - error2 */
+
+    /* (if query (+ query sessionID expire)) */
+    /* (if (not query) (+ error2)) */
+    query = newSessionQuery(id, &sessionID, &expire, &error2);
+
+    /* (if (not query) (- error2) (+ signup) (return)) */
+    if (!query) {
+        /* (+ res) */
         res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
         a_sbldaddcstr(res->body, "Error creating session: ");
         a_sbldadds(res->body, error2);
+        /* (- error2 sessionID expire) */
         a_sdestroy(error2);
+        a_sdestroy(sessionID);
+        a_sdestroy(expire);
 
-        /* res | signup */
+        /* (| res signup) (return) */
         return res;
     }
 
-    /* rc: + error3 */
-    rc = sqlite3_exec(db, query2->data, NULL, NULL, &error3);
+    /* (if rc (+ error3)) */
+    rc = sqlite3_exec(db, query->data, NULL, NULL, &error3);
+
+    /* (- query) */
+    a_sdestroy(query);
+
+    /* (if rc (- error3) (+signup) (return)) */
     if (rc) {
         sqlite3_close(db);
-        /* + res */
+        /* (+ res) */
         res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/html"));
         a_sbldaddcstr(res->body, "Error creating session: ");
         a_sbldaddcstr(res->body, error3);
-        a_sbldaddcstr(res->body, "\n");
-        a_sbldadds(res->body, query2);
-        /* - error3 */
+        /* (- error3 sessionID expire) */
         sqlite3_free(error3);
-        /* res | signup */
+        a_sdestroy(sessionID);
+        a_sdestroy(expire);
+        /* (| res signup) (return) */
         return res;
     }
 
@@ -177,7 +330,8 @@ response signup(request req, a_string body)
 
     /* (+ res) */
     res = createResponse(200, a_cstr2s("OK"), a_cstr2s("application/x-www-form-urlencoded"));
-    a_sbldaddcstr(res->body, "sessionID=");
+    a_sbldaddcstr(res->body, "emailExists=");
+    a_sbldaddcstr(res->body, "&sessionID=");
     a_sbldaddcstr(res->body, sessionID->data);
     a_sbldaddcstr(res->body, "&sessionExpire=");
     a_sbldaddcstr(res->body, expire->data);
