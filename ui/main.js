@@ -8,6 +8,7 @@ import Signup from './Signup.vue'
 import Login from './Login.vue'
 import Error from './Error.vue'
 import SignupResult from './SignupResult.vue'
+import Profile from './Profile.vue'
 
 Vue.use(VueRouter)
 Vue.use(Vuex)
@@ -32,6 +33,10 @@ const routes = [
   {
     path: '/signupResult',
     component: SignupResult
+  },
+  {
+    path: '/profile',
+    component: Profile
   }
 ];
 const router = new VueRouter({

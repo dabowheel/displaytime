@@ -19,6 +19,9 @@
       <div v-show="menuExpanded && $route.path != '/settings'" class="drop-menu-item">
         <a v-on:click.prevent="clickSettings" href="/settings" class="" title="settings">Settings</a>
       </div>
+      <div v-show="menuExpanded && sessionID && $route.path != '/profile'" class="drop-menu-item">
+        <a v-on:click.prevent="clickProfile" href="/profile" class="" title="profile">Profile</a>
+      </div>
       <div v-show="menuExpanded && sessionID && $route.path != '/logout'" class="drop-menu-item">
         <a v-on:click.prevent="clickLogout" href="/logout" class="" title="logout">Logout</a>
       </div>
@@ -59,6 +62,10 @@
       clickSettings() {
         this.menuExpanded = !this.menuExpanded
         this.$router.push('settings')
+      },
+      clickProfile() {
+        this.menuExpanded = !this.menuExpanded
+        this.$router.push('profile')
       },
       clickLogout() {
         this.$store.commit('setSessionID', '')
