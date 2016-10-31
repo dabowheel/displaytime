@@ -93,25 +93,25 @@
 
         if (this.valid) {
           var body = packSignup(this.email, this.password)
-          api('POST', 'signup', body, function (status, body) {
+          api('POST', 'signup', null, body, function (status, body) {
             if (status !== 200) {
               this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")
               this.$router.push('error')
-              return;
+              return
             }
 
             console.log(body);
             var obj = decodeForm(body);
             if (obj.emailExists) {
               alert('An account with this email address already exists.');
-              return;
+              return
             }
 
             if (!obj.sessionID || !obj.sessionExpire) {
               console.error("session ID or expire not returned on signup");
               this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")
               this.$router.push('error')
-              return;
+              return
             }
 
             this.$store.commit('setSessionID', obj.sessionID);

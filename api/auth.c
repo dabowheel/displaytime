@@ -173,11 +173,17 @@ response signup(request req, a_string body)
     sqlite3_stmt *stmt;
     int done;
     int has_row;
+    a_string emailKey;
+    a_string passwordKey;
 
     /* (+ table email|table password|table) */
     table = a_decodeForm(body);
-    email = a_htGet(table, a_cstr2s("email"));
-    password = a_htGet(table, a_cstr2s("password"));
+    emailKey = a_cstr2s("email");
+    passwordKey = a_cstr2s("password");
+    email = a_htGet(table, emailKey);
+    password = a_htGet(table, passwordKey);
+    a_sdestroy(emailKey);
+    a_sdestroy(passwordKey);
 
     /* !rc: +signup AND END */
     rc = sqlite3_open("displaytime.db", &db);
@@ -348,47 +354,32 @@ response signup(request req, a_string body)
     GetLoginQuery (PRIVATE)
     DESCRIPTION: Get a query string for checking login credentials
     INPUT:
-        body - body of request
+        email - email
+        password - password
     OUTPUT:
         GetLoginQuery - the query string or NULL if error
         *errorptr - unset or the error string if error
     MEMORY:
-        GetLoginQuery: +GetLoginQuery 
-        !GetLoginQuery: +*errorptr
+        (if GetLoginQuery (+ GetLoginQuery))
+        (if (not GetLoginQuery) (+ *errorptr))
 */
-a_string GetLoginQuery(a_string body, a_string *errorptr)
+a_string GetLoginQuery(a_string email, a_string password, a_string *errorptr)
 {
     a_string queryFormat;
     a_string query;
-    a_string emailKey;
-    a_string passwordKey;
-    a_string email;
-    a_string password;
-    a_hash_table table;
 
-    /* +table, email|table, password|table */
-    emailKey = a_cstr2s("email");
-    passwordKey = a_cstr2s("password");
-    table = a_decodeForm(body);
-    email = a_htGet(table, emailKey);
-    password = a_htGet(table, passwordKey);
-    a_sdestroy(emailKey);
-    a_sdestroy(passwordKey);
-
-    /* query: +query */
-    /* !query: +*errorptr */
-    /* -table, email|table, password|table */
+    /* (if query (+ query)) */
+    /* (if (not query) (+ *errorptr)) */
     queryFormat = a_cstr2s("SELECT id FROM user WHERE email = ? AND password = ?;");
     query = a_sqlformat(queryFormat, errorptr, email, password);
     a_sdestroy(queryFormat);
-    a_htDestroy(table);
 
-    /* !query: -*errorptr */
+    /* (if (not query) (| *errorptr *errorptr) (return)) */
     if (!query) {
         return NULL;
     }
 
-    /* query: -query */
+    /* (| query GetLoginQuery) */
     return query;
 }
 
@@ -420,9 +411,35 @@ response handleLogin(request req, a_string body)
     a_string expire;
     a_string rc_num;
 
+    a_string emailKey;
+    a_string passwordKey;
+    a_string email;
+    a_string password;
+    a_hash_table table;
+
+    /* +table */
+    emailKey = a_cstr2s("email");
+    passwordKey = a_cstr2s("password");
+    table = a_decodeForm(body);
+    email = a_htGet(table, emailKey);
+    password = a_htGet(table, passwordKey);
+    a_sdestroy(emailKey);
+    a_sdestroy(passwordKey);
+
+    /* (if (or (not email) (not password)) (-table) (+ handleLogin) (return)) */
+    if (!email || !password) {
+        res = ApplicationError();
+        a_sbldaddcstr(res->body, "email or password not present in body of request");
+        a_htDestroy(table);
+        return res;
+    }
+
     /* (if query (+ query)) */
     /* (if (not query) (+ error)) */
-    query = GetLoginQuery(body, &error);
+    query = GetLoginQuery(email, password, &error);
+    
+    /* (- table) */
+    a_htDestroy(table);
 
     /* (if (not query) (- error) (+ handleLogin) (return)) */
     if (!query) {
@@ -566,5 +583,174 @@ response handleLogin(request req, a_string body)
     a_sdestroy(expire);
 
     /* (| res handleLogin) */
+    return res;
+}
+
+/*
+    GetProfileQuery (PUBLIC)
+    DESCRIPTION: get profile query
+    INPUT:
+        sessionID - session ID
+    OUTPUT:
+        GetProfileQuery - get profile query
+        *errorptr - error if any
+    MEMORY:
+        (if GetProfileQuery (+GetProfileQuery))
+        (if (not GetProfileQuery (+ *errorptr)))
+*/
+a_string GetProfileQuery(a_string sessionID, a_string *errorptr)
+{
+    a_string queryFormat;
+    a_string query;
+
+    /* (+ queryFormat) */
+    queryFormat = a_cstr2s("SELECT user.email FROM session, user WHERE session.id = ? AND session.userID = user.id;");
+    
+    /* (if query (+ query)) */
+    /* (if (not query) (+ *errorptr)) */
+    query = a_sqlformat(queryFormat, errorptr, sessionID);
+
+    /* (if (not query) (| *errorptr *errorptr) (return)) */
+    if (!query) {
+        return NULL;
+    }
+
+    /* (| query GetProfileQuery) (return) */
+    return query;
+}
+
+response HandleGetProfile(request req, a_string body)
+{
+    a_string query;
+    a_string sessionID;
+    a_string error;
+    a_hash_table table;
+    a_string sessionIDKey;
+    response res;
+    int rc;
+    sqlite3 *db;
+    const char *dberror;
+    sqlite3_stmt *stmt;
+    int done;
+    int has_row;
+    const char *emailstr;
+
+    /* (+ table) */
+    table = a_decodeForm(req->query_string);
+    writeLog(req->query_string->data);
+
+    /* (+ sessionIDKey) */
+    sessionIDKey = a_cstr2s("sessionID");
+    sessionID = a_htGet(table, sessionIDKey);
+
+    /* (- sessionIDKey) */
+    a_sdestroy(sessionIDKey);
+
+    /* (if (not sessionID) (+ HandleGetProfile) (return)) */
+    if (!sessionID) {
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+        a_sbldaddcstr(res->body, "sessionID not found in body of request");
+        /* (| res HandleGetProfile) */
+        return res;
+    }
+
+    /* (if query (+ query)) */
+    /* (if (not query) (*errorptr)) */
+    query = GetProfileQuery(sessionID, &error);
+
+    /* (if (not query) (- error table) (+ HandleGetProfile) (return)) */
+    if (!query) {
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+        a_sbldaddcstr(res->body, "Error building get profile query: ");
+        a_sbldadds(res->body, error);
+        /* (- error table) */
+        a_sdestroy(error);
+        a_htDestroy(table);
+        /* (| res HandleGetProfile) (return)*/
+        return res;
+    }
+
+    rc = sqlite3_open("displaytime.db", &db);
+
+    /* (if rc (- query table) (+ HandleGetProfile) (return)) */
+    if (rc) {
+        dberror = sqlite3_errmsg(db);
+        sqlite3_close(db);
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+        a_sbldaddcstr(res->body, "Error opening connect to db: ");
+        a_sbldaddcstr(res->body, dberror);
+        /* (- query table) */
+        a_sdestroy(query);
+        a_htDestroy(table);
+        /* (| res HandleGetProfile) (return) */
+        return res;
+    }
+
+    rc = sqlite3_prepare(db, query->data, query->len + 1, &stmt, NULL);
+
+    /* (if rc (+HandleGetProfile) (return)) */
+    if (rc) {
+        dberror = sqlite3_errmsg(db);
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        /* (+ res) */
+        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+        a_sbldaddcstr(res->body, "Error preparing SQL statement: ");
+        a_sbldaddcstr(res->body, dberror);
+        /* (| res HandleGetProfile) */
+        return res;
+    }
+
+    /* (if dberror (+ HandleGetProfile) (return)) */
+    done = 0;
+    has_row = 0;
+    while (!done) {
+        rc = sqlite3_step(stmt);
+        switch (rc) {
+            case SQLITE_BUSY:
+                break;
+            case SQLITE_DONE:
+                done = 1;
+                break;
+            case SQLITE_ROW:
+                has_row = 1;
+                done = 1;
+                break;
+            case SQLITE_ERROR:
+            case SQLITE_MISUSE:
+            default:
+                dberror = sqlite3_errmsg(db);
+                sqlite3_finalize(stmt);
+                sqlite3_close(db);
+                /* (+ res) */
+                res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
+                a_sbldaddcstr(res->body, dberror);
+                /* (| res HandleGetProfile) */
+                return res;
+        }
+    }
+
+    /* (if (not has_row) (+ HandleGetProfile) (return)) */
+    if (!has_row) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        /* (+ res) */
+        res = ApplicationError();
+        a_sbldaddcstr(res->body, "Profile not found");
+        /* (| res HandleGetProfile) (return) */
+        return res;
+    }
+
+    emailstr = (char*)sqlite3_column_text(stmt, 0);
+    /* (+res) */
+    res = FormResponse();
+    a_sbldaddcstr(res->body, "email=");
+    a_sbldaddcstr(res->body, emailstr);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    /* (| res HandleGetProfile) (return) */
     return res;
 }

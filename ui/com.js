@@ -13,7 +13,7 @@ function packLogin(email, password) {
   return packSignup(email, password);
 }
 
-function  api (method, path, body, callback) {
+function  api (method, endpoint, query_string, body, callback) {
   var request = new XMLHttpRequest()
   request.onreadystatechange = function () {
     if (request.readyState === XMLHttpRequest.DONE) {
@@ -23,10 +23,15 @@ function  api (method, path, body, callback) {
       callback(request.status, request.responseText)
     }
   }
-  request.open(method, 'http://' + location.host + '/api/' + path + '.cgi', true)
+  var path = 'http://' + location.host + '/api/' + endpoint + '.cgi';
+  if (query_string) {
+    path += "?" + query_string
+  }
+  request.open(method, path , true)
   if (body) {
     request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
   }
+  console.log("send", "body", body);
   request.send(body)
 }
 

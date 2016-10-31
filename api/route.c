@@ -2,6 +2,7 @@
 #include <string.h>
 #include "com.h"
 #include "auth.h"
+#include "util.h"
 
 /*
     handleNotFound (PRIVATE)
@@ -43,15 +44,19 @@ response handleNotFound()
 */
 response handleRequest(request req, a_string body)
 {
+    char *path = req->script_name->data;
+    char *method = req->method->data;
     response res;
 
-    char *path = req->request_uri->data;
+    writeLog(path);
 
     /* + res */
     if (strcmp(path, "/api/signup.cgi") == 0) {
         res = signup(req, body);
     } else if (strcmp(path, "/api/login.cgi") == 0) {
         res = handleLogin(req, body);
+    } else if (strcmp(path, "/api/profile.cgi") == 0 && strcmp(method, "GET") == 0) {
+        res = HandleGetProfile(req, body);
     } else {
         res = handleNotFound(req);
     }

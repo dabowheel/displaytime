@@ -20,6 +20,7 @@ request getRequest()
     req->content_type = a_cstr2s(getenv("CONTENT_TYPE"));
     req->content_length = a_cstr2s(getenv("CONTENT_LENGTH"));
     req->query_string = a_cstr2s(getenv("QUERY_STRING"));
+    req->script_name = a_cstr2s(getenv("SCRIPT_NAME"));
 
     /* req | getRequest */
     return req;
@@ -143,4 +144,30 @@ void send(response res)
 
     /* - body */
     a_sdestroy(body);
+}
+
+/*
+    ApplicationError (PUBLIC)
+    DESCRIPTION: create application error response
+    OUTPUT:
+        ApplicationError - application error response
+    MEMORY:
+        (+ ApplicationError)
+*/
+response ApplicationError()
+{
+    return createResponse(500, a_cstr2s("Application Error"), a_cstr2s("plain/text"));
+}
+
+/*
+    FormResponse (PUBLIC)
+    DESCRIPTION: create form response
+    OUTPUT:
+        FormResponse - form response
+    MEMORY:
+        (+ FormResponse)
+*/
+response FormResponse()
+{
+    return createResponse(200, a_cstr2s("OK"), a_cstr2s("application/x-www-form-urlencoded"));
 }
