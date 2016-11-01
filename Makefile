@@ -6,7 +6,7 @@ object_files = main.o route.o com.o auth.o util.o profile.o
 all: public/build.js api
 
 public/build.js: ui/*
-	webpack
+	webpack --progress
 
 api: build app
 
@@ -26,7 +26,9 @@ clean:
 	rm -rf build
 	rm -f public/build.js
 
-deploy:
+deploy: deployweb deployapp
+deployweb:
 	rm -rf /var/www/html/*
 	cp -R public/* /var/www/html
+deployapp:
 	script/restart.sh
