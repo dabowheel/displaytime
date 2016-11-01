@@ -2,6 +2,7 @@
 #include <string.h>
 #include "com.h"
 #include "auth.h"
+#include "session.h"
 #include "util.h"
 
 /*

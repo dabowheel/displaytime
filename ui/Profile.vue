@@ -57,7 +57,7 @@
           return         
         }
 
-        this.email = email
+        this.email = obj.email
       }.bind(this));
     },
     computed: {

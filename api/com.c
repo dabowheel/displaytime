@@ -171,3 +171,47 @@ response FormResponse()
 {
     return createResponse(200, a_cstr2s("OK"), a_cstr2s("application/x-www-form-urlencoded"));
 }
+
+/*
+    ApplicationErrorDescription (PUBLIC)
+    DESCRIPTION: create application error response with description
+    INPUT:
+        description - the description of the error
+    OUTPUT:
+        ApplicationErrorDescription - application error response
+    MEMORY:
+        (+ ApplicationErrorDescription)
+*/
+response ApplicationErrorDescription(const char *description)
+{
+    response res;
+
+    /* (+ res) */
+    res = ApplicationError();
+    a_sbldaddcstr(res->body, description);
+    /* (| res HandleUpdateProfile) (return) */
+    return res;
+}
+
+/*
+    ApplicationErrorDetails (PUBLIC)
+    DESCRIPTION: create application error response with details
+    INPUT:
+        description - the description of the error
+        details - the details
+    OUTPUT:
+        ApplicationErrorDetails - application error response
+    MEMORY:
+        (+ ApplicationErrorDetails)
+*/
+response ApplicationErrorDetails(const char *description, a_string details)
+{
+    response res;
+
+    /* (+ res) */
+    res = ApplicationError();
+    a_sbldaddcstr(res->body, description);
+    a_sbldadds(res->body, details);
+    /* (| res HandleUpdateProfile) (return) */
+    return res;
+}

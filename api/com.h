@@ -24,6 +24,8 @@ response createResponse(int status, a_string statusText, a_string contentType);
 void destroyResponse(response res);
 void send(response res);
 response ApplicationError();
+response ApplicationErrorDescription(const char *description);
+response ApplicationErrorDetails(const char *description, a_string details);
 response FormResponse();
 
 #endif
