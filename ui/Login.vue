@@ -17,6 +17,9 @@
       </div>
       <div class="form-group">
         <button v-on:click.prevent='clickLogin' v-bind:disabled='!valid'>Login</button>
+        <div v-show='loginError' class='error'>
+          {{ loginError }}
+        </div>
       </div>
     </div>
   </div>
@@ -30,7 +33,8 @@
         email: "",
         password: "",
         validateEmail: false,
-        validatePassword: false
+        validatePassword: false,
+        loginError: false
       }
     },
     computed: {
@@ -54,10 +58,12 @@
       email() {
         if (this.email)
           this.validateEmail = true
+          this.loginError = false
       },
       password() {
         if (this.password)
           this.validatePassword = true
+          this.loginError = false
       }
     },
     methods: {
@@ -76,6 +82,12 @@
 
             console.log(body)
             var obj = decodeForm(body)
+
+            if (!obj.success) {
+              this.loginError = 'Email or password does not match'
+              return
+            }
+
             if (!obj.sessionID || !obj.sessionExpire) {
               console.error("session ID or expire not returned on signup");
               this.$store.commit('setLastError', 'There was an error during login. Please contact the administrator or try again later.')

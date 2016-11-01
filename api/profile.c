@@ -322,6 +322,17 @@ a_string ProfileUpdateQuery(a_string sessionID, a_hash_table table, a_string *er
     return a_sbld2s(b);
 }
 
+/*
+    HandleUpdateProfile (PUBLIC)
+    DESCRIPTION: update profile
+    INPUT:
+        req - request
+        body - body of request
+    OUTPUT:
+        HandleUpdateProfile - response
+    MEMORY:
+        (+ HandleUpdateProfile)
+*/
 response HandleUpdateProfile(request req, a_string body)
 {
     a_hash_table table;
@@ -334,6 +345,8 @@ response HandleUpdateProfile(request req, a_string body)
     sqlite3 *db;
     const char *dberror;
     sqlite3_stmt *stmt;
+    int done;
+    int count;
 
     /* (+ table) */
     table = a_decodeForm(body);
@@ -388,5 +401,57 @@ response HandleUpdateProfile(request req, a_string body)
 
     rc = sqlite3_prepare(db, query->data, query->len + 1, &stmt, NULL);
 
-}
+    /* (if rc (+ HandleUpdateProfile) (return)) */
+    if (rc) {
+        dberror = sqlite3_errmsg(db);
+        sqlite3_close(db);
+        /* (+ res) */
+        res = ApplicationErrorDescription("Error while preparing query: ");
+        a_sbldaddcstr(res->body, dberror);
+        /* (| res HandleUpdateProfile) (return) */
+        return res;
+    }
 
+    /* (if [sql error] (+ HandleUpdateProfile) (return)) */
+    done = 0;
+    while (!done) {
+        rc = sqlite3_step(stmt);
+        switch (rc) {
+            case SQLITE_BUSY:
+                break;
+            case SQLITE_DONE:
+            case SQLITE_ROW:
+                done = 1;
+                break;
+            case SQLITE_ERROR:
+            case SQLITE_MISUSE:
+            default:
+                dberror = sqlite3_errmsg(db);
+                sqlite3_finalize(stmt);
+                sqlite3_close(db);
+                /* (+ res) */
+                res = ApplicationErrorDescription("Error stepping though query results: ");
+                a_sbldaddcstr(res->body, dberror);
+                /* (| res HandleUpdateProfile) (return) */
+                return res;
+        }
+    }
+
+    count = sqlite3_changes(db);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    /* (if (< count 1) (+ HandleUpdateProfile)) */
+    if (count < 1) {
+        /* (+res) */
+        res = ApplicationErrorDescription("Could not find profile.");
+        /* (| res HandleUpdateProfile) (return) */
+        return res;
+    }
+
+    /* (+ res) */
+    res = FormResponse();
+
+    /* (| res HandleUpdateProfile) (return) */
+    return res;
+}

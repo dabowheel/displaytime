@@ -1,7 +1,7 @@
 CFLAGS = -Wall -O3 -g
 LDFLAGS = -lfcgi -laqua -lsqlite3 -lrandomid -lgmp -lcrypto
 LDPATH = -L/usr/local/lib
-object_files = main.o route.o com.o auth.o util.o session.o
+object_files = main.o route.o com.o auth.o util.o profile.o
 
 all: public/build.js api
 

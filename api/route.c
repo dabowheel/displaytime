@@ -2,7 +2,7 @@
 #include <string.h>
 #include "com.h"
 #include "auth.h"
-#include "session.h"
+#include "profile.h"
 #include "util.h"
 
 /*
@@ -58,6 +58,8 @@ response handleRequest(request req, a_string body)
         res = handleLogin(req, body);
     } else if (strcmp(path, "/api/profile.cgi") == 0 && strcmp(method, "GET") == 0) {
         res = HandleGetProfile(req, body);
+    } else if (strcmp(path, "/api/profile.cgi") == 0 && strcmp(method, "POST") == 0) {
+        res = HandleUpdateProfile(req, body);
     } else {
         res = handleNotFound(req);
     }

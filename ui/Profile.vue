@@ -87,6 +87,18 @@
         this.validateEmail = true
         this.validatePassword = true
         this.validateNewPassword = true
+
+        api('POST', 'profile', null, body, function (status, body) {
+          if (status !== 200) {
+            this.$store.commit('setLastError', 'There was an error updating the profile.')
+            this.$router.push('error')
+            return
+          }
+
+          this.ValidateEmail = false
+          this.ValidatePassword = false
+          this.ValidateNewPassword = false
+        }.bind(this))
       }
     },
     watch: {
