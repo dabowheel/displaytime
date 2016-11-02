@@ -1,6 +1,6 @@
 <template>
   <div>
-    <form class='form'>
+    <div class='form'>
       <div class='form-group'>
         <label for='email'>Email Address:</label>
         <input v-model='email' class='form-control' type='email' name='email'>
@@ -22,7 +22,7 @@
           {{ newPasswordError }}
         </div>
       </div>
-      <button v-bind:click='clickSave' type='submit' v-bind:disabled='!valid'>Save</button>
+      <button v-on:click.prevent='clickSave' type='button' v-bind:disabled='!valid'>Save</button>
     </form>
   </div>
 </template>
@@ -88,7 +88,10 @@
         this.validatePassword = true
         this.validateNewPassword = true
 
-        api('POST', 'profile', null, body, function (status, body) {
+        var query_string = "sessionID=" + encodeURIComponent(this.$store.state.sessionID)
+        var body = 'email=' + encodeURIComponent(this.email) + '&password=' + encodeURIComponent(this.password) +
+          '&newPassword=' + encodeURIComponent(this.newPassword)
+        api('POST', 'profile', query_string, body, function (status, body) {
           if (status !== 200) {
             this.$store.commit('setLastError', 'There was an error updating the profile.')
             this.$router.push('error')

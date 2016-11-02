@@ -21,7 +21,7 @@ a_string GetProfileQuery(a_string sessionID, a_string *errorptr)
     a_string query;
 
     /* (+ queryFormat) */
-    queryFormat = a_cstr2s("SELECT user.email FROM session, user WHERE session.id = ? AND session.userID = user.id;");
+    queryFormat = a_cstr2s("SELECT user.id, user.email FROM session, user WHERE session.id = ? AND session.userID = user.id;");
     
     /* (if query (+ query)) */
     /* (if (not query) (+ *errorptr)) */
@@ -161,7 +161,7 @@ response HandleGetProfile(request req, a_string body)
         return res;
     }
 
-    emailstr = (char*)sqlite3_column_text(stmt, 0);
+    emailstr = (char*)sqlite3_column_text(stmt, 1);
     /* (+res) */
     res = FormResponse();
     a_sbldaddcstr(res->body, "email=");
@@ -238,9 +238,11 @@ a_string ProfileUpdateQuery(a_string sessionID, a_hash_table table, a_string *er
     a_string query;
     a_string email;
     a_string password;
+    a_string newPassword;
     a_string_builder b;
     a_string emailKey;
     a_string passwordKey;
+    a_string newPasswordKey;
     int count = 0;
 
     /* (+ b) */
@@ -274,18 +276,22 @@ a_string ProfileUpdateQuery(a_string sessionID, a_hash_table table, a_string *er
     /* (- emailKey) */
     a_sdestroy(emailKey);
 
+    /* (+ newPasswordKey) */
+    newPasswordKey = a_cstr2s("newPassword");
+    newPassword = a_htGet(table, newPasswordKey);
+
     /* (+ passwordKey) */
     passwordKey = a_cstr2s("password");
     password = a_htGet(table, passwordKey);
 
-    /* (if (password) (if query (+ *errorptr) (return))) */
-    if (password) {
+    /* (if (newPassword) (if query (+ *errorptr) (return))) */
+    if (newPassword) {
         /* (+ query) */
-        query = FormatSet(passwordKey, password, &count, errorptr);
+        query = FormatSet(passwordKey, newPassword, &count, errorptr);
         /* (if query (+ *errorptr) (return)) */
         if (!query) {
             /* (- passwordKey) */
-            a_sdestroy(passwordKey);
+            a_sdestroy(newPasswordKey);
             /* (| *errorptr *errorptr) */
             return NULL;
         }
@@ -295,15 +301,18 @@ a_string ProfileUpdateQuery(a_string sessionID, a_hash_table table, a_string *er
         a_sdestroy(query);
     }
 
+    /* (- newPasswordKey) */
+    a_sdestroy(newPasswordKey);
+
+    /* (+ queryFormat) */
+    queryFormat = a_cstr2s(" WHERE id = (SELECT userID FROM session WHERE id = ?) AND password = ?;");
+
     /* (- passwordKey) */
     a_sdestroy(passwordKey);
 
-    /* (+ queryFormat) */
-    queryFormat = a_cstr2s(" WHERE id = (SELECT userID FROM session WHERE id = ?);");
-
     /* (if query (+ query)) */
     /* (if (not query) (+ *errorptr)) */
-    query = a_sqlformat(queryFormat, errorptr, sessionID);
+    query = a_sqlformat(queryFormat, errorptr, sessionID, password);
 
     /* (- queryFormat) */
     a_sdestroy(queryFormat);
@@ -335,7 +344,7 @@ a_string ProfileUpdateQuery(a_string sessionID, a_hash_table table, a_string *er
 */
 response HandleUpdateProfile(request req, a_string body)
 {
-    a_hash_table table;
+    a_hash_table bodyTable;
     a_string sessionID;
     a_string sessionIDKey;
     response res;
@@ -347,13 +356,14 @@ response HandleUpdateProfile(request req, a_string body)
     sqlite3_stmt *stmt;
     int done;
     int count;
+    a_hash_table urlTable;
 
-    /* (+ table) */
-    table = a_decodeForm(body);
+    /* (+ urlTable) */
+    urlTable = a_decodeForm(req->query_string);
 
     /* (+ sessionIDKey) */
     sessionIDKey = a_cstr2s("sessionID");
-    sessionID = a_htGet(table, sessionIDKey);
+    sessionID = a_htGet(urlTable, sessionIDKey);
 
     /* (- sessionIDKey) */
     a_sdestroy(sessionIDKey);
@@ -361,23 +371,30 @@ response HandleUpdateProfile(request req, a_string body)
     /* (if (not sessionID) (- table) (+ HandleUpdateProfile) (return)) */
     if (!sessionID) {
         /* (- table) */
-        a_htDestroy(table);
+        a_htDestroy(urlTable);
         /* (+ res) */
         res = ApplicationErrorDescription("sessionID was not found in the body of the request");
         /* (| res HandleUpdateProfile) (return) */
         return res;
     }
 
+    /* (+ bodyTable) */
+    bodyTable = a_decodeForm(body);
+
     /* (if query (+ query)) */
     /* (if (not query) (+ *errorptr)) */
-    query = ProfileUpdateQuery(sessionID, table, &error);
+    query = ProfileUpdateQuery(sessionID, bodyTable, &error);
+    writeLog("query");
+    writeLog(query->data);
 
-    /* (if (not query) (- table) (+ HandleUpdateProfile) (return)) */
+    /* (- urlTable bodyTable) */
+    a_htDestroy(urlTable);
+    a_htDestroy(bodyTable);
+
+    /* (if (not query) (+ HandleUpdateProfile) (return)) */
     if (!query) {
-        /* (- table) */
-        a_htDestroy(table);
         /* (+ res) */
-        res = ApplicationErrorDetails("Error building user ID query: ", error);
+        res = ApplicationErrorDetails("Error building query: ", error);
         /* (- error) */
         a_sdestroy(error);
         /* (| res HandleUpdateProfile) (return) */
