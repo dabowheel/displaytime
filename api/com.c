@@ -204,14 +204,14 @@ response ApplicationErrorDescription(const char *description)
     MEMORY:
         (+ ApplicationErrorDetails)
 */
-response ApplicationErrorDetails(const char *description, a_string details)
+response ApplicationErrorDetails(const char *description, const char *details)
 {
     response res;
 
     /* (+ res) */
     res = ApplicationError();
     a_sbldaddcstr(res->body, description);
-    a_sbldadds(res->body, details);
+    a_sbldaddcstr(res->body, details);
     /* (| res HandleUpdateProfile) (return) */
     return res;
 }

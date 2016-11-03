@@ -25,7 +25,7 @@ void destroyResponse(response res);
 void send(response res);
 response ApplicationError();
 response ApplicationErrorDescription(const char *description);
-response ApplicationErrorDetails(const char *description, a_string details);
+response ApplicationErrorDetails(const char *description, const char *details);
 response FormResponse();
 
 #endif

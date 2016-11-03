@@ -2,6 +2,7 @@
 #include <sqlite3.h>
 #include "com.h"
 #include "util.h"
+#include "profile.h"
   
 /*
     GetProfileQuery (PUBLIC)
@@ -21,7 +22,7 @@ a_string GetProfileQuery(a_string sessionID, a_string *errorptr)
     a_string query;
 
     /* (+ queryFormat) */
-    queryFormat = a_cstr2s("SELECT user.id, user.email FROM session, user WHERE session.id = ? AND session.userID = user.id;");
+    queryFormat = a_cstr2s("SELECT user.id, user.email, user.password FROM session, user WHERE session.id = ? AND session.userID = user.id;");
     
     /* (if query (+ query)) */
     /* (if (not query) (+ *errorptr)) */
@@ -36,92 +37,102 @@ a_string GetProfileQuery(a_string sessionID, a_string *errorptr)
     return query;
 }
 
-response HandleGetProfile(request req, a_string body)
+/*
+    CreateProfile (PRIVATE)
+    DESCRIPTION: Create a profile object
+    INPUT:
+        id - id
+        email - email 
+        password - password
+    OUTPUT:
+        CreateProfile - profile
+    MEMORY:
+        (+ CreateProfile)
+*/
+profile CreateProfile(char *id, char *email, char *password)
 {
-    a_string query;
-    a_string sessionID;
+    profile p = a_malloc(sizeof(struct profile));
+    p->id = id;
+    p->email = email;
+    p->password = password;
+    return p;
+}
+
+/*
+    GetProfile (PRIVATE)
+    DESCRIPTION: Get a profile from a session ID
+    INPUT:
+        sessionID - session ID
+    OUTPUT:
+        GetProfile - profile if no error
+        *errorptr - error if any
+    MEMORY:
+        (if GetProfile (+ GetProfile))
+        (if (not GetProfile) (+ *errorptr))
+*/
+profile GetProfile(sqlite3 *db, a_string sessionID, a_string *errorptr)
+{
+    a_string_builder b;
     a_string error;
-    a_hash_table table;
-    a_string sessionIDKey;
-    response res;
+    profile p;
+    a_string query;
     int rc;
-    sqlite3 *db;
     const char *dberror;
     sqlite3_stmt *stmt;
     int done;
     int has_row;
-    const char *emailstr;
-
-    /* (+ table) */
-    table = a_decodeForm(req->query_string);
-    writeLog(req->query_string->data);
-
-    /* (+ sessionIDKey) */
-    sessionIDKey = a_cstr2s("sessionID");
-    sessionID = a_htGet(table, sessionIDKey);
-
-    /* (- sessionIDKey) */
-    a_sdestroy(sessionIDKey);
-
-    /* (if (not sessionID) (+ HandleGetProfile) (return)) */
-    if (!sessionID) {
-        /* (+ res) */
-        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
-        a_sbldaddcstr(res->body, "sessionID not found in body of request");
-        /* (| res HandleGetProfile) */
-        return res;
-    }
 
     /* (if query (+ query)) */
-    /* (if (not query) (*errorptr)) */
+    /* (if (not query) (error)) */
     query = GetProfileQuery(sessionID, &error);
 
-    /* (if (not query) (- error table) (+ HandleGetProfile) (return)) */
+    /* (if (not query) (- error) (+ GetProfile) (return)) */
     if (!query) {
-        /* (+ res) */
-        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
-        a_sbldaddcstr(res->body, "Error building get profile query: ");
-        a_sbldadds(res->body, error);
-        /* (- error table) */
+        /* (+ b) */
+        b = a_sbldcreate();
+        a_sbldaddcstr(b, "Error building get profile query: ");
+        a_sbldadds(b, error);
+        /* (- error) */
         a_sdestroy(error);
-        a_htDestroy(table);
-        /* (| res HandleGetProfile) (return)*/
-        return res;
+        /* (| b *errorptr) (return)*/
+        *errorptr = a_sbld2s(b);
+        return NULL;
     }
 
     rc = sqlite3_open("displaytime.db", &db);
 
-    /* (if rc (- query table) (+ HandleGetProfile) (return)) */
+    /* (if rc (- query) (+ *errorptr) (return)) */
     if (rc) {
         dberror = sqlite3_errmsg(db);
         sqlite3_close(db);
-        /* (+ res) */
-        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
-        a_sbldaddcstr(res->body, "Error opening connect to db: ");
-        a_sbldaddcstr(res->body, dberror);
-        /* (- query table) */
+        /* (+ b) */
+        b = a_sbldcreate();
+        a_sbldaddcstr(b, "Error opening connect to db: ");
+        a_sbldaddcstr(b, dberror);
+        /* (- query) */
         a_sdestroy(query);
-        a_htDestroy(table);
-        /* (| res HandleGetProfile) (return) */
-        return res;
+        /* (| b *errorptr) (return) */
+        *errorptr = a_sbld2s(b);
+        return NULL;
     }
 
     rc = sqlite3_prepare(db, query->data, query->len + 1, &stmt, NULL);
 
-    /* (if rc (+HandleGetProfile) (return)) */
+    /* (if rc (+ *errorptr) (return)) */
     if (rc) {
         dberror = sqlite3_errmsg(db);
+        /* (+ b) */
+        b = a_sbldcreate();
+        a_sbldaddcstr(b, "Error preparing SQL statement: ");
+        a_sbldaddcstr(b, dberror);
         sqlite3_finalize(stmt);
         sqlite3_close(db);
-        /* (+ res) */
-        res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
-        a_sbldaddcstr(res->body, "Error preparing SQL statement: ");
-        a_sbldaddcstr(res->body, dberror);
-        /* (| res HandleGetProfile) */
-        return res;
+        /* (| b *errorptr) */
+        *errorptr = a_sbld2s(b);
+        return NULL;
     }
 
-    /* (if dberror (+ HandleGetProfile) (return)) */
+    /* (if (= rc SQLITE_ERROR SQLITEMISUSE) (+ *errorptr) (return)) */
     done = 0;
     has_row = 0;
     while (!done) {
@@ -140,35 +151,110 @@ response HandleGetProfile(request req, a_string body)
             case SQLITE_MISUSE:
             default:
                 dberror = sqlite3_errmsg(db);
+                /* (b) */
+                b = a_sbldcreate();
+                a_sbldaddcstr(b, dberror);
                 sqlite3_finalize(stmt);
                 sqlite3_close(db);
-                /* (+ res) */
-                res = createResponse(500, a_cstr2s("Application Error"), a_cstr2s("text/plain"));
-                a_sbldaddcstr(res->body, dberror);
-                /* (| res HandleGetProfile) */
-                return res;
+                /* (| b *errorptr) (return) */
+                *errorptr = a_sbld2s(b);
+                return NULL;
         }
     }
 
-    /* (if (not has_row) (+ HandleGetProfile) (return)) */
+    /* (if (not has_row) (+ *errorptr) (return)) */
     if (!has_row) {
+        /* (+ b) */
+        b = a_sbldcreate();
+        a_sbldaddcstr(b, "Profile not found");
         sqlite3_finalize(stmt);
         sqlite3_close(db);
+        /* (| b *errorptr) (return) */
+        *errorptr = a_sbld2s(b);
+        return NULL;
+    }
+
+    /* (+ p) */
+    p = CreateProfile((char*)sqlite3_column_text(stmt, 0), (char*)sqlite3_column_text(stmt, 1), (char*)sqlite3_column_text(stmt, 2));
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    /* (| p GetProfile) (return) */
+    return p;
+}
+
+response HandleGetProfile(request req, a_string body)
+{
+    a_string sessionID;
+    a_hash_table table;
+    a_string sessionIDKey;
+    response res;
+    profile p;
+    sqlite3 *db;
+    a_string error;
+    int rc;
+    const char *dberror;
+
+    /* (+ table) */
+    table = a_decodeForm(req->query_string);
+    writeLog(req->query_string->data);
+
+    /* (+ sessionIDKey) */
+    sessionIDKey = a_cstr2s("sessionID");
+    sessionID = a_htGet(table, sessionIDKey);
+
+    /* (- sessionIDKey) */
+    a_sdestroy(sessionIDKey);
+
+    /* (if (not sessionID) (+ HandleGetProfile) (return)) */
+    if (!sessionID) {
         /* (+ res) */
-        res = ApplicationError();
-        a_sbldaddcstr(res->body, "Profile not found");
+        res = ApplicationErrorDescription("sessionID not found in body of request");
+        /* (| res HandleGetProfile) */
+        return res;
+    }
+
+    /* (+ db) */
+    rc = sqlite3_open("displaytime.db", &db);
+
+    /* (if rc (- db) (+ HandleGetProfile) (return)) */
+    if (rc) {
+        dberror = sqlite3_errmsg(db);
+        /* (+ res) */
+        res = ApplicationErrorDetails("Count not open connection to database: ", dberror);
+        /* (- db) */
+        sqlite3_close(db);
         /* (| res HandleGetProfile) (return) */
         return res;
     }
 
-    emailstr = (char*)sqlite3_column_text(stmt, 1);
-    /* (+res) */
+    /* (if p (+ p)) */
+    /* (if (not p) (+ error)) */
+    p = GetProfile(db, sessionID, &error);
+
+    /* (if (not p) (-db) (+HandleGetProfile) (return)) */
+    if (!p) {
+        /* (+ res) */
+        res = ApplicationErrorDetails("Could not get profile: ", error->data);
+
+        /* (- error) */
+        a_sdestroy(error);
+
+        /* (- db) */
+        sqlite3_close(db);
+
+        /* (| res HandleGetProfile) (return) */
+        return res;
+    }
+
+    /* (+ res) */
     res = FormResponse();
     a_sbldaddcstr(res->body, "email=");
-    a_sbldaddcstr(res->body, emailstr);
-    sqlite3_finalize(stmt);
+    a_sbldaddcstr(res->body, p->email);
+
+    /* (- db) */
     sqlite3_close(db);
-    /* (| res HandleGetProfile) (return) */
+
+    /* (| res HandleGetProfile) */
     return res;
 }
 
@@ -232,7 +318,7 @@ a_string FormatSet(a_string key, a_string value, int *countptr, a_string *errorp
         (if ProfileUpdateQuery (+ ProfileUpdateQuery))
         (if (not ProfileUpdateQuery) (+ *errorptr))
 */
-a_string ProfileUpdateQuery(a_string sessionID, a_hash_table table, a_string *errorptr)
+a_string ProfileUpdateQuery(a_string userID, a_hash_table table, a_string *errorptr)
 {
     a_string queryFormat;
     a_string query;
@@ -305,14 +391,14 @@ a_string ProfileUpdateQuery(a_string sessionID, a_hash_table table, a_string *er
     a_sdestroy(newPasswordKey);
 
     /* (+ queryFormat) */
-    queryFormat = a_cstr2s(" WHERE id = (SELECT userID FROM session WHERE id = ?) AND password = ?;");
+    queryFormat = a_cstr2s(" WHERE id = ? AND password = ?;");
 
     /* (- passwordKey) */
     a_sdestroy(passwordKey);
 
     /* (if query (+ query)) */
     /* (if (not query) (+ *errorptr)) */
-    query = a_sqlformat(queryFormat, errorptr, sessionID, password);
+    query = a_sqlformat(queryFormat, errorptr, userID, password);
 
     /* (- queryFormat) */
     a_sdestroy(queryFormat);
@@ -332,6 +418,108 @@ a_string ProfileUpdateQuery(a_string sessionID, a_hash_table table, a_string *er
 }
 
 /*
+    UpdateProfile (PRIVATE)
+    DESCRIPTION: update profile
+    INPUT:
+        db - database
+        sessionID - session ID
+        table - table
+    OUTPUT:
+        UpdateProfile - 1 if successful, otherwise 0
+        *errorptr - error if not successful
+    MEMORY:
+        (if (not UpdateProfile) (+ *errorptr))
+*/
+int UpdateProfile(sqlite3 *db, a_string sessionID, a_hash_table table, a_string *errorptr)
+{
+    int rc;
+    const char *dberror;
+    a_string_builder b;
+    a_string query;
+    sqlite3_stmt *stmt;
+    int done;
+    int count;
+
+    /* (if query (+ query)) */
+    /* (if (not query) (+ *errorptr)) */
+    query = ProfileUpdateQuery(sessionID, table, errorptr);
+    writeLog("query");
+    writeLog(query->data);
+
+    /* (if (not query) (+ *errorptr) (return)) */
+    if (!query) {
+        /* (| *errorptr *errorptr) */
+        return 0;
+    }
+
+    /* (+ stmt) */
+    rc = sqlite3_prepare(db, query->data, query->len + 1, &stmt, NULL);
+
+    /* (- query) */
+    a_sdestroy(query);
+
+    /* (if rc (- stmt) (+ *errorptr) (return)) */
+    if (rc) {
+        dberror = sqlite3_errmsg(db);
+        /* (+ res) */
+        b = a_sbldcreate();
+        a_sbldaddcstr(b, dberror);
+        /* (- stmt) */
+        sqlite3_finalize(stmt);
+        /* (| b *errorptr) */
+        *errorptr = a_sbld2s(b);
+        /* (return) */
+        return 0;
+    }
+
+    /* (if (= rc SQLITE_ERROR SQLITE_MISUSE) (+ *errorptr) (return)) */
+    done = 0;
+    while (!done) {
+        rc = sqlite3_step(stmt);
+        switch (rc) {
+            case SQLITE_BUSY:
+                break;
+            case SQLITE_DONE:
+            case SQLITE_ROW:
+                done = 1;
+                break;
+            case SQLITE_ERROR:
+            case SQLITE_MISUSE:
+            default:
+                dberror = sqlite3_errmsg(db);
+                /* (+ b) */
+                b = a_sbldcreate();
+                a_sbldaddcstr(b, dberror);
+                sqlite3_finalize(stmt);
+                /* (| b *errorptr) */
+                *errorptr = a_sbld2s(b);
+                /* (return) */
+                return 0;
+        }
+    }
+
+    count = sqlite3_changes(db);
+
+    /* (- stmt) */
+    sqlite3_finalize(stmt);
+
+    /* (if (< count 1) (+ HandleUpdateProfile)) */
+    if (count < 1) {
+        /* (+ b) */
+        b = a_sbldcreate();
+        a_sbldaddcstr(b, "Could not find profile.");
+
+        /* (| b *errorptr) */
+        *errorptr = a_sbld2s(b);
+
+        /* (return) */
+        return 0;
+    }
+
+    return 1;
+}
+
+/*
     HandleUpdateProfile (PUBLIC)
     DESCRIPTION: update profile
     INPUT:
@@ -348,58 +536,11 @@ response HandleUpdateProfile(request req, a_string body)
     a_string sessionID;
     a_string sessionIDKey;
     response res;
-    a_string query;
-    a_string error;
     int rc;
     sqlite3 *db;
     const char *dberror;
-    sqlite3_stmt *stmt;
-    int done;
-    int count;
     a_hash_table urlTable;
-
-    /* (+ urlTable) */
-    urlTable = a_decodeForm(req->query_string);
-
-    /* (+ sessionIDKey) */
-    sessionIDKey = a_cstr2s("sessionID");
-    sessionID = a_htGet(urlTable, sessionIDKey);
-
-    /* (- sessionIDKey) */
-    a_sdestroy(sessionIDKey);
-
-    /* (if (not sessionID) (- table) (+ HandleUpdateProfile) (return)) */
-    if (!sessionID) {
-        /* (- table) */
-        a_htDestroy(urlTable);
-        /* (+ res) */
-        res = ApplicationErrorDescription("sessionID was not found in the body of the request");
-        /* (| res HandleUpdateProfile) (return) */
-        return res;
-    }
-
-    /* (+ bodyTable) */
-    bodyTable = a_decodeForm(body);
-
-    /* (if query (+ query)) */
-    /* (if (not query) (+ *errorptr)) */
-    query = ProfileUpdateQuery(sessionID, bodyTable, &error);
-    writeLog("query");
-    writeLog(query->data);
-
-    /* (- urlTable bodyTable) */
-    a_htDestroy(urlTable);
-    a_htDestroy(bodyTable);
-
-    /* (if (not query) (+ HandleUpdateProfile) (return)) */
-    if (!query) {
-        /* (+ res) */
-        res = ApplicationErrorDetails("Error building query: ", error);
-        /* (- error) */
-        a_sdestroy(error);
-        /* (| res HandleUpdateProfile) (return) */
-        return res;
-    }
+    a_string error;
 
     /* (+ db) */
     rc = sqlite3_open("displaytime.db", &db);
@@ -416,59 +557,44 @@ response HandleUpdateProfile(request req, a_string body)
         return res;
     }
 
-    rc = sqlite3_prepare(db, query->data, query->len + 1, &stmt, NULL);
+    /* (+ urlTable) */
+    urlTable = a_decodeForm(req->query_string);
 
-    /* (if rc (+ HandleUpdateProfile) (return)) */
-    if (rc) {
-        dberror = sqlite3_errmsg(db);
-        sqlite3_close(db);
+    /* (+ sessionIDKey) */
+    sessionIDKey = a_cstr2s("sessionID");
+    sessionID = a_htGet(urlTable, sessionIDKey);
+
+    /* (- sessionIDKey urlTable) */
+    a_sdestroy(sessionIDKey);
+    a_htDestroy(urlTable);
+
+    /* (if (not sessionID) (- urlTable) (+ HandleUpdateProfile) (return)) */
+    if (!sessionID) {
+        /* (- table) */
+        a_htDestroy(urlTable);
         /* (+ res) */
-        res = ApplicationErrorDescription("Error while preparing query: ");
-        a_sbldaddcstr(res->body, dberror);
+        res = ApplicationErrorDescription("sessionID was not found in the body of the request");
         /* (| res HandleUpdateProfile) (return) */
         return res;
     }
 
-    /* (if [sql error] (+ HandleUpdateProfile) (return)) */
-    done = 0;
-    while (!done) {
-        rc = sqlite3_step(stmt);
-        switch (rc) {
-            case SQLITE_BUSY:
-                break;
-            case SQLITE_DONE:
-            case SQLITE_ROW:
-                done = 1;
-                break;
-            case SQLITE_ERROR:
-            case SQLITE_MISUSE:
-            default:
-                dberror = sqlite3_errmsg(db);
-                sqlite3_finalize(stmt);
-                sqlite3_close(db);
-                /* (+ res) */
-                res = ApplicationErrorDescription("Error stepping though query results: ");
-                a_sbldaddcstr(res->body, dberror);
-                /* (| res HandleUpdateProfile) (return) */
-                return res;
-        }
-    }
+    /* (+ bodyTable) */
+    bodyTable = a_decodeForm(body);
 
-    count = sqlite3_changes(db);
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-
-    /* (if (< count 1) (+ HandleUpdateProfile)) */
-    if (count < 1) {
-        /* (+res) */
-        res = ApplicationErrorDescription("Could not find profile.");
+    /* (if (not UpdateProfile) (- bodyTable) (+ HandleUpdateProfile) (return)) */
+    if (!UpdateProfile(db, sessionID, bodyTable, &error)) {
+        /* (- bodyTable) */
+        a_htDestroy(bodyTable);
+        /* (+ res) */
+        res = ApplicationErrorDetails("Could not update profile: ", error->data);
+        /* (- error) */
+        a_sdestroy(error);
         /* (| res HandleUpdateProfile) (return) */
         return res;
     }
 
     /* (+ res) */
     res = FormResponse();
-
     /* (| res HandleUpdateProfile) (return) */
     return res;
 }
