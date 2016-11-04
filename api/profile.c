@@ -1,5 +1,6 @@
 #include <aqua/aqua.h>
 #include <sqlite3.h>
+#include <string.h>
 #include "com.h"
 #include "util.h"
 #include "profile.h"
@@ -58,6 +59,14 @@ profile CreateProfile(char *id, char *email, char *password)
     return p;
 }
 
+void DestroyProfile(profile p)
+{
+    free(p->id);
+    free(p->email);
+    free(p->password);
+    free(p);
+}
+
 /*
     GetProfile (PRIVATE)
     DESCRIPTION: Get a profile from a session ID
@@ -81,10 +90,14 @@ profile GetProfile(sqlite3 *db, a_string sessionID, a_string *errorptr)
     sqlite3_stmt *stmt;
     int done;
     int has_row;
+    a_string userID;
+    a_string email;
+    a_string password;
 
     /* (if query (+ query)) */
     /* (if (not query) (error)) */
     query = GetProfileQuery(sessionID, &error);
+    writeLog(query->data);
 
     /* (if (not query) (- error) (+ GetProfile) (return)) */
     if (!query) {
@@ -174,8 +187,13 @@ profile GetProfile(sqlite3 *db, a_string sessionID, a_string *errorptr)
         return NULL;
     }
 
-    /* (+ p) */
-    p = CreateProfile((char*)sqlite3_column_text(stmt, 0), (char*)sqlite3_column_text(stmt, 1), (char*)sqlite3_column_text(stmt, 2));
+    /* (+ userID email password) */
+    userID = a_cstr2s((char*)sqlite3_column_text(stmt, 0));
+    email = a_cstr2s((char*)sqlite3_column_text(stmt, 1));
+    password = a_cstr2s((char*)sqlite3_column_text(stmt, 2));
+
+    /* (+ p) (| userID p) (| email p) (| password p) */
+    p = CreateProfile(a_s2cstr(userID), a_s2cstr(email), a_s2cstr(password));
     sqlite3_finalize(stmt);
     sqlite3_close(db);
     /* (| p GetProfile) (return) */
@@ -250,6 +268,9 @@ response HandleGetProfile(request req, a_string body)
     res = FormResponse();
     a_sbldaddcstr(res->body, "email=");
     a_sbldaddcstr(res->body, p->email);
+
+    /* (-p) */
+    DestroyProfile(p);
 
     /* (- db) */
     sqlite3_close(db);
@@ -422,7 +443,7 @@ a_string ProfileUpdateQuery(a_string userID, a_hash_table table, a_string *error
     DESCRIPTION: update profile
     INPUT:
         db - database
-        sessionID - session ID
+        sessionID - user ID
         table - table
     OUTPUT:
         UpdateProfile - 1 if successful, otherwise 0
@@ -430,7 +451,7 @@ a_string ProfileUpdateQuery(a_string userID, a_hash_table table, a_string *error
     MEMORY:
         (if (not UpdateProfile) (+ *errorptr))
 */
-int UpdateProfile(sqlite3 *db, a_string sessionID, a_hash_table table, a_string *errorptr)
+int UpdateProfile(sqlite3 *db, a_string userID, a_hash_table table, a_string *errorptr)
 {
     int rc;
     const char *dberror;
@@ -442,7 +463,7 @@ int UpdateProfile(sqlite3 *db, a_string sessionID, a_hash_table table, a_string 
 
     /* (if query (+ query)) */
     /* (if (not query) (+ *errorptr)) */
-    query = ProfileUpdateQuery(sessionID, table, errorptr);
+    query = ProfileUpdateQuery(userID, table, errorptr);
     writeLog("query");
     writeLog(query->data);
 
@@ -534,6 +555,7 @@ response HandleUpdateProfile(request req, a_string body)
 {
     a_hash_table bodyTable;
     a_string sessionID;
+    a_string userID;
     a_string sessionIDKey;
     response res;
     int rc;
@@ -541,6 +563,11 @@ response HandleUpdateProfile(request req, a_string body)
     const char *dberror;
     a_hash_table urlTable;
     a_string error;
+    profile p;
+    a_string password;
+    a_string passwordKey;
+    a_string newPasswordKey;
+    a_string newPassword;
 
     /* (+ db) */
     rc = sqlite3_open("displaytime.db", &db);
@@ -564,13 +591,12 @@ response HandleUpdateProfile(request req, a_string body)
     sessionIDKey = a_cstr2s("sessionID");
     sessionID = a_htGet(urlTable, sessionIDKey);
 
-    /* (- sessionIDKey urlTable) */
+    /* (- sessionIDKey) */
     a_sdestroy(sessionIDKey);
-    a_htDestroy(urlTable);
 
-    /* (if (not sessionID) (- urlTable) (+ HandleUpdateProfile) (return)) */
+    /* (if (not sessionID) (+ HandleUpdateProfile) (return)) */
     if (!sessionID) {
-        /* (- table) */
+        /* (- urlTable) */
         a_htDestroy(urlTable);
         /* (+ res) */
         res = ApplicationErrorDescription("sessionID was not found in the body of the request");
@@ -578,13 +604,74 @@ response HandleUpdateProfile(request req, a_string body)
         return res;
     }
 
+    /* (if p (+p)) */
+    /* (if (not p) (+ error)) */
+    p = GetProfile(db, sessionID, &error);
+
+    /* (- urlTable) */
+    a_htDestroy(urlTable);
+
+    /* (if (not p) (+ HandleUpdateProfile) (return)) */
+    if (!p) {
+        /* (+ res) */
+        res = ApplicationErrorDetails("Could not find profile: ", error->data);
+        /* (- error) */
+        a_sdestroy(error);
+        /* (| res HandleUpdateProfile) (return) */
+        return res;
+    }
+
     /* (+ bodyTable) */
     bodyTable = a_decodeForm(body);
 
+    /* (+ newPasswordKey) */
+    newPasswordKey = a_cstr2s("newPassword");
+
+    /* (if newPassword (+ newPassword)) */
+    newPassword = a_htGet(bodyTable, newPasswordKey);
+
+    /* (- newPasswordKey) */
+    a_sdestroy(newPasswordKey);
+
+    if (newPassword && newPassword->len > 0) {
+        /* (+ passwordKey) */
+        passwordKey = a_cstr2s("password");
+
+        password = a_htGet(bodyTable, passwordKey);
+        a_sdestroy(passwordKey);
+ 
+        /* (if (not password) (+ HandleUpdateProfile) (return)) */
+        if (!password || password->len < 1) {
+            /* (+ res) */
+            res = ApplicationErrorDescription("Old password must be specified to set a new password");
+            /* (- bodyTable p) */
+            a_htDestroy(bodyTable);
+            DestroyProfile(p);
+            /* (| res HandleUpdateProfile) (return) */
+            return res;
+        }
+
+        /* (if password doesn't match (- bodyTable p) (+ HandleUpdateProfile) (return)) */
+        if (strcmp(p->password, password->data) != 0) {
+            /* (- bodyTable p) */
+            a_htDestroy(bodyTable);
+            DestroyProfile(p);
+            /* (+ res) */
+            res = ApplicationErrorDescription("Old Password does not match current password");
+            /* (| res HandleUpdateProfile) */
+            return res;
+        }
+    }
+
+    /* (+ userID) */
+    userID = a_cstr2s(p->id);
+
     /* (if (not UpdateProfile) (- bodyTable) (+ HandleUpdateProfile) (return)) */
-    if (!UpdateProfile(db, sessionID, bodyTable, &error)) {
-        /* (- bodyTable) */
+    if (!UpdateProfile(db, userID, bodyTable, &error)) {
+        /* (- bodyTable userID p) */
         a_htDestroy(bodyTable);
+        a_sdestroy(userID);
+        DestroyProfile(p);
         /* (+ res) */
         res = ApplicationErrorDetails("Could not update profile: ", error->data);
         /* (- error) */
@@ -592,6 +679,11 @@ response HandleUpdateProfile(request req, a_string body)
         /* (| res HandleUpdateProfile) (return) */
         return res;
     }
+
+    /* (- bodyTable userID p) */
+    a_htDestroy(bodyTable);
+    a_sdestroy(userID);
+    DestroyProfile(p);
 
     /* (+ res) */
     res = FormResponse();
