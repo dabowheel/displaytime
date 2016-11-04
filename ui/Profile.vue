@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class='form'>
+    <form class='form'>
       <div class='form-group'>
         <label for='email'>Email Address:</label>
         <input v-model='email' class='form-control' type='email' name='email'>
@@ -9,8 +9,8 @@
         </div>
       </div>
       <div class='form-group'>
-        <label for='password'>Old Password:</label>
-        <input v-model='password' class='form-control' type='password' name='password'>
+        <label for='password'>Current Password:</label>
+        <input v-model='password' class='form-control' type='password' name='password' v-bind:disabled='!newPassword'>
         <div v-show='validatePassword' class="error">
           {{ passwordError }}
         </div>
@@ -23,6 +23,9 @@
         </div>
       </div>
       <button v-on:click.prevent='clickSave' type='button' v-bind:disabled='!valid'>Save</button>
+      <div v-show='saveError' class='error'>
+        {{ saveError }}
+      </div>
     </form>
   </div>
 </template>
@@ -37,7 +40,8 @@
         newPassword: '',
         validateEmail: false,
         validatePassword: false,
-        validateNewPassword: false
+        validateNewPassword: false,
+        saveError: ''
       }
     },
     created() {
@@ -70,7 +74,7 @@
       },
       passwordError () {
         if (this.newPassword && !this.password)
-          return 'Old Password must be entered to change passwords'
+          return 'Current Password must be entered to change password'
         return ""
       },
       newPasswordError() {
@@ -98,6 +102,12 @@
             return
           }
 
+          var obj = decodeForm(body);
+          if (!obj.success) {
+            this.saveError = 'Current Password does not match current password'
+            return
+          }
+
           this.ValidateEmail = false
           this.ValidatePassword = false
           this.ValidateNewPassword = false
@@ -112,6 +122,7 @@
       password() {
         if (this.password)
           this.validatePassword = true
+          this.saveError = ''
       },
       newPassword() {
         if (this.newPassword)

@@ -392,7 +392,7 @@ a_string ProfileUpdateQuery(a_string userID, a_hash_table table, a_string *error
     password = a_htGet(table, passwordKey);
 
     /* (if (newPassword) (if query (+ *errorptr) (return))) */
-    if (newPassword) {
+    if (newPassword && strlen(newPassword->data) > 0) {
         /* (+ query) */
         query = FormatSet(passwordKey, newPassword, &count, errorptr);
         /* (if query (+ *errorptr) (return)) */
@@ -411,15 +411,27 @@ a_string ProfileUpdateQuery(a_string userID, a_hash_table table, a_string *error
     /* (- newPasswordKey) */
     a_sdestroy(newPasswordKey);
 
-    /* (+ queryFormat) */
-    queryFormat = a_cstr2s(" WHERE id = ? AND password = ?;");
-
     /* (- passwordKey) */
     a_sdestroy(passwordKey);
 
+    /* (+ queryFormat) */
     /* (if query (+ query)) */
     /* (if (not query) (+ *errorptr)) */
-    query = a_sqlformat(queryFormat, errorptr, userID, password);
+    if (newPassword && strlen(newPassword->data) > 0) {
+        /* (+ queryFormat) */
+        queryFormat = a_cstr2s(" WHERE id = ? AND password = ?;");
+
+        /* (if query (+ query)) */
+        /* (if (not query) (+ *errorptr)) */
+        query = a_sqlformat(queryFormat, errorptr, userID, password);
+    } else {
+        /* (+ queryFormat) */
+        queryFormat = a_cstr2s(" WHERE id = ?;");
+
+        /* (if query (+ query)) */
+        /* (if (not query) (+ *errorptr)) */
+        query = a_sqlformat(queryFormat, errorptr, userID);
+    }
 
     /* (- queryFormat) */
     a_sdestroy(queryFormat);
@@ -643,7 +655,7 @@ response HandleUpdateProfile(request req, a_string body)
         /* (if (not password) (+ HandleUpdateProfile) (return)) */
         if (!password || password->len < 1) {
             /* (+ res) */
-            res = ApplicationErrorDescription("Old password must be specified to set a new password");
+            res = ApplicationErrorDescription("Current password must be specified to set a new password");
             /* (- bodyTable p) */
             a_htDestroy(bodyTable);
             DestroyProfile(p);
@@ -657,7 +669,8 @@ response HandleUpdateProfile(request req, a_string body)
             a_htDestroy(bodyTable);
             DestroyProfile(p);
             /* (+ res) */
-            res = ApplicationErrorDescription("Old Password does not match current password");
+            res = FormResponse();
+            a_sbldaddcstr(res->body, "success=");
             /* (| res HandleUpdateProfile) */
             return res;
         }
@@ -687,6 +700,7 @@ response HandleUpdateProfile(request req, a_string body)
 
     /* (+ res) */
     res = FormResponse();
+    a_sbldaddcstr(res->body, "success=true");
     /* (| res HandleUpdateProfile) (return) */
     return res;
 }
