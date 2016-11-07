@@ -1,5 +1,10 @@
 <template>
   <div>
+    <div class="drop-menu drop-menu-left">
+      <div v-if='$route.path == "/settings"' class="drop-menu-header">
+        <span class='header'>Settings</span>
+      </div>
+    </div>
     <div v-bind:class="{ 'drop-menu-expanded': menuExpanded }" class="drop-menu">
       <div v-show="!menuExpanded" class="drop-menu-header">
         <a href="#" v-on:click.prevent="clickMenu" class="" title="menu"><i class="fa fa-ellipsis-v fa-2x drop-menu-icon" aria-hidden="true"></i></a>
@@ -104,5 +109,11 @@
   .seperator {
     height: 4em;
     width: 100%;
+  }
+  .drop-menu-left {
+    right: auto;
+  }
+  .header {
+    font-size: 1.73906em;
   }
 </style>
