@@ -144,7 +144,7 @@
   /* desktop */
   @media (min-width: 1000px) {
     .form-control {
-      width: 200px;
+      width: 250px;
     }
   }
 </style>
