@@ -1,8 +1,12 @@
 <template>
   <div>
     <div class="drop-menu drop-menu-left">
-      <div v-if='$route.path == "/settings"' class="drop-menu-header">
-        <span class='header'>Settings</span>
+      <div class="drop-menu-header drop-menu-header-left">
+        <span v-if='$route.path == "/signup"' class='header'>Sign Up</span>
+        <span v-if='$route.path == "/login"' class='header'>Login</span>
+        <span v-if='$route.path == "/error"' class='header'>Error</span>
+        <span v-if='$route.path == "/profile"' class='header'>Profile</span>
+        <span v-if='$route.path == "/settings"' class='header'>Settings</span>
       </div>
     </div>
     <div v-bind:class="{ 'drop-menu-expanded': menuExpanded }" class="drop-menu">
@@ -112,8 +116,13 @@
   }
   .drop-menu-left {
     right: auto;
+    text-align: left;
+  }
+  .drop-menu-header-left {
+    text-align: left;
   }
   .header {
     font-size: 1.73906em;
+    text-align: left;
   }
 </style>

@@ -105,7 +105,7 @@
   }
 </script>
 
-<style>
+<style scoped>
   #id {
     text-align: center;
     width: 100%;
