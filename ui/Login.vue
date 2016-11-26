@@ -75,7 +75,7 @@
           var body = packLogin(this.email, this.password)
           api('POST', 'login', null, body, function (status, body) {
             if (status != 200) {
-              this.$store.commit('setLastError', "There was an error during signup. Please contact the administrator or try again later.")
+              this.$store.commit('setLastError', "There was an error during login. Please contact the administrator or try again later.")
               this.$router.push('error')
               return
             }
